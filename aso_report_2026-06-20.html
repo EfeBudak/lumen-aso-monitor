@@ -24,6 +24,15 @@
   .ch-row .kw{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mv{font-size:13px;font-weight:500}
   .mv.up{color:#3b6d11} .mv.down{color:#a32d2d} .mv.rel{color:#185fa5}
+  details.rel-item{padding:2px 0}
+  details.rel-item>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:4px 0;font-size:14px}
+  details.rel-item>summary::-webkit-details-marker{display:none}
+  details.rel-item>summary::before{content:"▸";color:var(--hint);font-size:10px;width:10px}
+  details.rel-item[open]>summary::before{content:"▾"}
+  .rel-detail{margin:2px 0 10px 38px;padding:10px 12px;background:var(--bg);border:.5px solid var(--bd);border-radius:8px}
+  .rel-title-chg{font-size:13px;color:var(--tx);margin:0 0 6px}
+  .rel-label{font-size:12px;font-weight:600;color:var(--mut);margin-bottom:4px}
+  .rel-text{font-size:13px;line-height:1.5;white-space:pre-wrap;margin:0;color:var(--tx)}
   table.heat{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed;font-size:12px}
   table.heat th{font-weight:600;color:var(--mut)}
   table.heat th.kw{text-align:left;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

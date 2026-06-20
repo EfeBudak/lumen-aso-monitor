@@ -9,6 +9,12 @@ on:
   schedule:
     - cron: "0 8 * * *"      # 08:00 UTC every day
   workflow_dispatch:           # also runnable on-demand from the Actions tab
+    inputs:
+      mode:
+        description: "pass = fetch fresh data + rebuild; report = rebuild report only (no API calls, keeps current diff window)"
+        default: "pass"
+        type: choice
+        options: ["pass", "report"]
 
 permissions:
   contents: write
@@ -26,8 +32,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run daily pass
-        run: python3 aso_monitor.py
+      - name: Run
+        run: |
+          if [ "${{ inputs.mode }}" = "report" ]; then
+            python3 aso_monitor.py report      # rebuild from history, no API calls
+          else
+            python3 aso_monitor.py             # full pass (scheduled runs land here)
+          fi
 
       - name: Commit history + report
         run: |

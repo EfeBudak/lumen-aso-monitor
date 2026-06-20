@@ -251,16 +251,25 @@ def _collect_changes(conn, cur, prev):
                 continue
             pv, pn, pd, pname = p
             what = []
+            detail = {}
             if pv != version:
                 what.append(f"v{pv} → v{version}")
             if pname != name:
                 what.append("title changed")
+                detail["old_title"] = pname
+                detail["new_title"] = name
             if pn != notes:
                 what.append("what's-new changed")
+                if (notes or "").strip():
+                    detail["notes"] = notes.strip()
+                    detail["version"] = version
             if pd != desc:
                 what.append("description changed")
             if what:
-                releases.append((country.upper(), name, ", ".join(what)))
+                releases.append({
+                    "cc": country.upper(), "name": name,
+                    "summary": ", ".join(what), "detail": detail,
+                })
     return rank_changes, releases
 
 
@@ -283,11 +292,29 @@ def _changes_html(rank_changes, releases, has_prev):
         parts.append('</div>')
     if releases:
         parts.append('<div class="ch-group"><div class="ch-head">Competitor releases</div>')
-        for cc, name, txt in releases:
-            parts.append(
-                f'<div class="ch-row"><span class="cc">{cc}</span>'
-                f'<span class="kw">{_esc(name)}</span>'
-                f'<span class="mv rel">{_esc(txt)}</span></div>')
+        for r in releases:
+            head = (f'<span class="cc">{r["cc"]}</span>'
+                    f'<span class="kw">{_esc(r["name"])}</span>'
+                    f'<span class="mv rel">{_esc(r["summary"])}</span>')
+            d = r["detail"]
+            body = []
+            if d.get("old_title"):
+                body.append(
+                    f'<p class="rel-title-chg">Title: “{_esc(d["old_title"])}” '
+                    f'→ “{_esc(d["new_title"])}”</p>')
+            if d.get("notes"):
+                txt = d["notes"]
+                if len(txt) > 1500:
+                    txt = txt[:1500] + "…"
+                body.append(
+                    f'<div class="rel-label">What’s new (v{_esc(d.get("version", ""))})</div>'
+                    f'<p class="rel-text">{_esc(txt)}</p>')
+            if body:
+                parts.append(
+                    f'<details class="rel-item"><summary>{head}</summary>'
+                    f'<div class="rel-detail">{"".join(body)}</div></details>')
+            else:
+                parts.append(f'<div class="ch-row">{head}</div>')
         parts.append('</div>')
     return "".join(parts)
 
@@ -477,6 +504,15 @@ def write_html(conn, now):
   .ch-row .kw{{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
   .mv{{font-size:13px;font-weight:500}}
   .mv.up{{color:#3b6d11}} .mv.down{{color:#a32d2d}} .mv.rel{{color:#185fa5}}
+  details.rel-item{{padding:2px 0}}
+  details.rel-item>summary{{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:4px 0;font-size:14px}}
+  details.rel-item>summary::-webkit-details-marker{{display:none}}
+  details.rel-item>summary::before{{content:"▸";color:var(--hint);font-size:10px;width:10px}}
+  details.rel-item[open]>summary::before{{content:"▾"}}
+  .rel-detail{{margin:2px 0 10px 38px;padding:10px 12px;background:var(--bg);border:.5px solid var(--bd);border-radius:8px}}
+  .rel-title-chg{{font-size:13px;color:var(--tx);margin:0 0 6px}}
+  .rel-label{{font-size:12px;font-weight:600;color:var(--mut);margin-bottom:4px}}
+  .rel-text{{font-size:13px;line-height:1.5;white-space:pre-wrap;margin:0;color:var(--tx)}}
   table.heat{{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed;font-size:12px}}
   table.heat th{{font-weight:600;color:var(--mut)}}
   table.heat th.kw{{text-align:left;font-weight:400;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
