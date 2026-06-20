@@ -1,0 +1,46 @@
+KEYWORD OPPORTUNITIES — ES @ 2026-06-19T23:44:14+00:00
+======================================================================================
+score = demand x winnability x relevance x headroom (x value modifier)
+
+keyword                  score  demand    you  pg1 floor  verdict     top app
+--------------------------------------------------------------------------------------
+dejar el alcohol          79.4      #1   #100          0  TARGET      Dejar el alcohol - EasyQ
+days sobriety             71.5      #2   #140          0  TARGET      Sober Days - Dejar de Be
+sobriety tracker counte   65.2      #3   #156          0  TARGET      Sobriety Tracker Counter
+racha                     59.4      #1      —          0  TARGET      Quit Habit: Rachas Diari
+dejar de fumar            57.7      #1      —          1  TARGET      Dejar De Fumar Ya - Smok
+sober tracker – quit ad   57.4      #1      —          0  TARGET      Days Since: Sober Streak
+days since                57.1      #1      —          0  TARGET      Days Since: Sober Streak
+alcohol tracker           57.1      #1      —          0  TARGET      DrinkControl: Contador b
+sober tracker             57.1      #1      —          0  TARGET      I Am Sober - Estoy sobri
+dejar de beber            56.8      #1      —          2  TARGET      I Am Sober - Estoy sobri
+stop drinking alcohol –   56.8      #1      —          2  TARGET      Dejar el alcohol - EasyQ
+sobriedad                 55.6      #1      —          0  TARGET      I Am Sober - Estoy sobri
+contador de sobriedad     55.6      #1      —          0  TARGET      I Am Sober - Estoy sobri
+sobriety counter          55.5      #1      —          1  TARGET      I Am Sober - Estoy sobri
+control : sobriety trac   51.4      #2      —          0  TARGET      Daily Planner routine sc
+sobrio                    50.8      #2      —          8  TARGET      I Am Sober - Estoy sobri
+contador sobriedad        50.0      #2      —          0  TARGET      I Am Sober - Estoy sobri
+sober time                50.0      #2      —          0  TARGET      Sober Time: Contador Sob
+counter sobriedad         50.0      #2      —          0  TARGET      Sobriety Counter: Sobrie
+sobriety tracker          45.6      #3      —          1  TARGET      Sober Time: Contador Sob
+sober contador            45.5      #3      —          0  TARGET      Sober – Contador Sobried
+sober days counter        44.5      #3      —          0  TARGET      Sober Days - Dejar de Be
+sober counter             44.4      #3      —          1  TARGET      Sober Time: Contador Sob
+quit alcohol              44.3      #3      —          2  TARGET      I Am Sober - Estoy sobri
+stop addiction            40.0      #4      —          0  TARGET      I Am Sober - Estoy sobri
+sobriety counter: sobri   38.9      #4      —          0  TARGET      Sobriety Counter: Sobrie
+stop drinking with aj     35.9      #3      —          0  TARGET      Stop Drinking with AJ
+quit drinking             33.3      #5      —          0  TARGET      Quit Drinking
+addiction recovery        33.2      #5      —          2  TARGET      I Am Sober - Estoy sobri
+dejar alcohol             16.6      #8      —          2  TARGET      I Am Sober - Estoy sobri
+streak tracker             2.9       —      —          0  low demand  Streak Tracker - StreakU
+quit smoking               2.9       —      —          0  low demand  QuitNow!
+quit tracker               2.9       —      —          0  low demand  Quit Tracker - Pledge
+since sober                2.8       —      —          0  low demand  Days Since: Sober Streak
+sobriety sponsor           2.1       —      —          0  low demand  SoberAI: AI Sobriety Spo
+
+demand    = Apple autocomplete rank for the term (#1 = most searched, — = not suggested)
+you       = Lumen's current rank for the term
+pg1 floor = ratings of the WEAKEST app in the top 10 (low = crackable)
+TARGET    = real demand + winnable + on-brand and you're not there yet

@@ -1,0 +1,43 @@
+KEYWORD OPPORTUNITIES — US @ 2026-06-19T23:27:23+00:00
+======================================================================================
+score = demand x winnability x relevance x headroom (x value modifier)
+
+keyword                  score  demand    you  pg1 floor  verdict     top app
+--------------------------------------------------------------------------------------
+streak tracker            65.5      #1      —          1  TARGET      Habit Tracker
+sober tracker             65.5      #1      —          1  TARGET      I Am Sober
+sobriety tracker free     60.1      #1      —         46  TARGET      Sober Time - Sobriety Co
+stop drinking alcohol f   59.1      #2      —          0  TARGET      Reframe: Drink Less & Th
+sober days counter        58.5      #2      —          5  TARGET      I Am Sober
+quit vaping               58.5      #2      —          5  TARGET      Quit Vaping
+sober recovery            58.2      #2      —          8  TARGET      I Am Sober
+sober counter             54.1      #2      —         46  TARGET      I Am Sober
+sobriety counter          54.1      #2      —         46  TARGET      I Am Sober
+days sobriety             52.5      #3      —          0  TARGET      Days - Sobriety Counter
+quit smoking              51.9      #3      —          6  TARGET      Smoke Free - Quit Smokin
+days since                50.7      #1      —        147  TARGET      Days Since: Quit Habit T
+sobriety tracker          46.7      #1      —        203  TARGET      I Am Sober
+free stop drinking app    46.7      #1      —        203  TARGET      Reframe: Drink Less & Th
+recovery tracker          43.8      #4      —         25  TARGET      I Am Sober
+alcohol tracker           43.4      #4      —         29  TARGET      DrinkControl: Alcohol Tr
+since quit                41.2      #4      —          8  TARGET      Days Since: Quit Habit T
+quit tracker              39.4      #5      —          0  TARGET      Days Since: Quit Habit T
+sobriety sponsor          39.3      #3      —        168  TARGET      SoberAI: AI Sobriety Spo
+quit habit                39.2      #5      —          3  TARGET      Days Since: Quit Habit T
+quit drinking             38.2      #5      —         16  TARGET      Quit Drinking
+addiction recovery        37.5      #2      —        289  TARGET      I Am Sober
+quit addiction            27.0      #5      —        229  TARGET      I Am Sober
+drink less                26.2      #7      —          2  TARGET      Reframe: Drink Less & Th
+addiction tracker         23.4      #1      —        906  watch       I Am Sober
+relapse tracker           23.4      #1      —        906  watch       I Am Sober
+sober time                22.1      #2      —        906  watch       Sober Time - Sobriety Co
+alcohol free tracker      18.0      #3      —        958  watch       I Am Sober
+stop drinking             11.4      #2      —      2,087  too strong  I Am Sober
+stop drinking alcohol     10.7      #2      —      2,267  too strong  Reframe: Drink Less & Th
+clean sobriety             3.3       —      —          0  low demand  Clean Day — Sobriety Cou
+time sobriety              3.2       —      —          6  low demand  Sober Time - Sobriety Co
+
+demand    = Apple autocomplete rank for the term (#1 = most searched, — = not suggested)
+you       = Lumen's current rank for the term
+pg1 floor = ratings of the WEAKEST app in the top 10 (low = crackable)
+TARGET    = real demand + winnable + on-brand and you're not there yet

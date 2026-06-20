@@ -1,0 +1,39 @@
+name: ASO daily
+
+# Runs the daily monitoring pass in the cloud, commits the updated history +
+# report back to the repo, and (via Pages serving the repo root) publishes the
+# latest dashboard at a stable URL. No secrets needed — the tool only calls
+# Apple's public API and has no dependencies.
+
+on:
+  schedule:
+    - cron: "0 8 * * *"      # 08:00 UTC every day
+  workflow_dispatch:           # also runnable on-demand from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aso-write             # never let daily + keyword scans push at once
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run daily pass
+        run: python3 aso_monitor.py
+
+      - name: Commit history + report
+        run: |
+          git config user.name  "aso-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add aso_history.db index.html aso_report_*.html aso_report_*.txt
+          git commit -m "ASO daily $(date -u +%F) [skip ci]" || { echo "no changes"; exit 0; }
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push

@@ -1,0 +1,49 @@
+name: ASO keyword scan
+
+# On-demand only: the heavy demand + winnability scan that refreshes the
+# "Where to focus" section. Run it from the Actions tab when you want fresh
+# keyword targets (weekly/biweekly is plenty). Not part of the daily job.
+
+on:
+  workflow_dispatch:
+    inputs:
+      countries:
+        description: "Space-separated storefronts to scan"
+        default: "us gb ie tr br es"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aso-write             # shares the lock with the daily job
+  cancel-in-progress: false
+
+jobs:
+  gap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run gap scans
+        run: |
+          for c in ${{ inputs.countries }}; do
+            echo "::group::$c"
+            python3 aso_monitor.py gap "$c"
+            echo "::endgroup::"
+          done
+
+      - name: Rebuild dashboard
+        run: python3 aso_monitor.py report
+
+      - name: Commit results
+        run: |
+          git config user.name  "aso-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add aso_history.db index.html aso_report_*.html aso_keyword_gaps_*.txt
+          git commit -m "ASO keyword scan $(date -u +%F) [skip ci]" || { echo "no changes"; exit 0; }
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push
