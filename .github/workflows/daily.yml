@@ -7,7 +7,13 @@ name: ASO daily
 
 on:
   schedule:
-    - cron: "0 8 * * *"      # 08:00 UTC every day
+    # GitHub cron is UTC-only and DST-unaware. 07:00 Dublin is 06:00 UTC in
+    # summer (IST, UTC+1) and 07:00 UTC in winter (GMT). Trigger at both and let
+    # the `gate` job below run only when it is actually 07:00 in Dublin, so the
+    # pass fires exactly once per day at 7am local time year-round. Minute is
+    # offset off the top of the hour to dodge GitHub's :00 scheduling congestion.
+    - cron: "7 6 * * *"      # 07:07 Dublin during IST (summer)
+    - cron: "7 7 * * *"      # 07:07 Dublin during GMT (winter)
   workflow_dispatch:           # also runnable on-demand from the Actions tab
     inputs:
       mode:
@@ -24,7 +30,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Scheduled runs fire at both 06:07 and 07:07 UTC (see cron note above); only
+  # the one matching 07:00 Dublin proceeds. Manual dispatch always proceeds.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$(TZ=Europe/Dublin date +%H)" = "07" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Dublin time is $(TZ=Europe/Dublin date +%H:%M) — not 07:00, skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   run:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
