@@ -1,0 +1,367 @@
+ASO pass @ 2026-06-21T08:18:37+00:00
+================================================
+
+KEYWORD RANKS (position in Search API results)
+
+[US]
+  sober tracker          not in top 200
+  days since             not in top 200
+  sobriety counter       not in top 200
+  sobriety tracker       not in top 200
+  relapse tracker        not in top 200
+  quit drinking          not in top 200
+  sober days counter     not in top 200
+  streak tracker         not in top 200
+  quit smoking           not in top 200
+  addiction recovery     not in top 200
+  sober counter          not in top 200
+  days since             not in top 200
+  quit tracker           not in top 200
+
+[GB]
+  sober tracker          not in top 200
+  days since             not in top 200
+  sobriety counter       not in top 200
+  sobriety tracker       not in top 200
+  relapse tracker        not in top 200
+  quit drinking          not in top 200
+  sober days counter     not in top 200
+  streak tracker         not in top 200
+  quit smoking           not in top 200
+  addiction recovery     not in top 200
+  sober counter          not in top 200
+  days since             not in top 200
+  quit tracker           not in top 200
+
+[IE]
+  sober tracker          #103
+  days since             not in top 200
+  sobriety counter       #67
+  sobriety tracker       #36
+  relapse tracker        #107
+  quit drinking          not in top 200
+  sober days counter     #135
+  streak tracker         not in top 200
+  quit smoking           not in top 200
+  addiction recovery     #155
+  sober counter          #138
+  days since             not in top 200
+  quit tracker           #38
+
+[TR]
+  sober tracker          #159
+  days since             not in top 200
+  sobriety counter       #143
+  sobriety tracker       #30
+  relapse tracker        not in top 200
+  quit drinking          not in top 200
+  sober days counter     #84
+  streak tracker         not in top 200
+  quit smoking           not in top 200
+  addiction recovery     #125
+  sober counter          #130
+  days since             not in top 200
+  quit tracker           #33
+
+[BR]
+  sober tracker          not in top 200
+  days since             not in top 200
+  sobriety counter       not in top 200
+  sobriety tracker       #116
+  relapse tracker        not in top 200
+  quit drinking          not in top 200
+  sober days counter     #170
+  streak tracker         not in top 200
+  quit smoking           not in top 200
+  addiction recovery     not in top 200
+  sober counter          not in top 200
+  days since             not in top 200
+  quit tracker           not in top 200
+
+[ES]
+  sober tracker          not in top 200
+  days since             not in top 200
+  sobriety counter       not in top 200
+  sobriety tracker       #168
+  relapse tracker        not in top 200
+  quit drinking          not in top 200
+  sober days counter     not in top 200
+  streak tracker         not in top 200
+  quit smoking           not in top 200
+  addiction recovery     not in top 200
+  sober counter          not in top 200
+  days since             not in top 200
+  quit tracker           not in top 200
+
+
+METADATA SNAPSHOTS + CHANGES
+
+[US] Lumen Sobriety: Quit Tracker (v1.2.0) 5* / 1 ratings
+
+[US] I Am Sober (v8.6.7) 4.88063* / 180710 ratings
+
+[US] Days Since: Quit Habit Tracker (v4.0.8) 4.82379* / 18217 ratings
+
+[US] Sober Time - Sobriety Counter (v4.3.08) 4.84934* / 39021 ratings
+
+[US] Nomo -  Sobriety Clocks (v7.9.167) 4.78368* / 15939 ratings
+
+[US] DayCount (v6.1) 4.6637* / 26262 ratings
+
+[US] Sunflower - Quit Any Addiction (v1.5.126) 4.85067* / 4969 ratings
+
+[US] Reframe: Drink Less & Thrive (v3.9.69) 4.73742* / 41667 ratings
+
+[US] Days - Sobriety Counter (v1.7.5) 4.3087* / 907 ratings
+
+[US] Sobo: Sober Best Friend (v1.5.38) 4.83333* / 204 ratings
+
+[US] Habit Tracker (v2.14.15) 4.79382* / 142606 ratings
+
+[US] Sobriety Counter Stop Drinking (v1.7) 4.70249* / 2810 ratings
+
+[US] Sober: Recovery Tracker (v12.0.0) 4.75946* / 7608 ratings
+
+[US] Sobriety Counter (v2.1) 4.41303* / 46 ratings
+
+[US] Clean Day — Sobriety Counter (v4.3.18) 4.05868* / 1687 ratings
+
+[US] SoberAI: AI Sobriety Sponsor (v2.1.7) 4.75595* / 168 ratings
+
+[US] Sobi: Sobriety Tracker (v1.3.5) 4.85253* / 217 ratings
+
+[US] My Spiritual Toolkit AA Steps (v7.0.9) 4.89403* / 12032 ratings
+
+[US] SoberQuest - Sobriety Tracker (v1.1.0) 4.28571* / 14 ratings
+
+[US] Sober SideKick: Quit Addiction (v5.9.2.6) 4.82535* / 7827 ratings
+
+[US] LiveSober: Sobriety Tracker (v1.0.6) 5* / 25 ratings
+
+[US] Sober Me: Tools for Recovery (v2.5.2) 4.83469* / 14125 ratings
+
+[US] Sober Today - Day Counter (v1.9.3) 4.3907* / 860 ratings
+
+[US] 12 Steps Companion AA Big Book (v3.0.3) 4.48227* / 141 ratings
+
+[GB] Lumen Sobriety: Quit Tracker (v1.2.0) 0* / 0 ratings
+
+[GB] I Am Sober (v8.6.7) 4.81773* / 31442 ratings
+
+[GB] Days Since: Quit Habit Tracker (v4.0.8) 4.82549* / 3805 ratings
+
+[GB] Sober Time - Sobriety Counter (v4.3.08) 4.77203* / 1860 ratings
+
+[GB] Nomo -  Sobriety Clocks (v7.9.167) 4.68994* / 1561 ratings
+
+[GB] DayCount (v6.1) 4.61491* / 2828 ratings
+
+[GB] Sunflower - Quit Any Addiction (v1.5.126) 4.85512* / 566 ratings
+
+[GB] Reframe: Drink Less & Thrive (v3.9.69) 4.61751* / 4557 ratings
+
+[GB] Dayz - Sobriety Counter (v1.7.5) 4.40475* / 42 ratings
+
+[GB] Sobo: Sober Best Friend (v1.5.38) 4.76923* / 13 ratings
+
+[GB] Habit Tracker (v2.14.15) 4.73515* / 22398 ratings
+
+[GB] Sobriety Counter Stop Drinking (v1.7) 4.66815* / 898 ratings
+
+[GB] Sober: Sobriety Tracker (v12.0.0) 4.66479* / 358 ratings
+
+[GB] Sobriety Counter (v2.1) 4.5* / 12 ratings
+
+[GB] Clean Day — Sobriety Counter (v4.3.18) 3.96479* / 142 ratings
+
+[GB] SoberAI: AI Sobriety Sponsor (v2.1.7) 4.5* / 6 ratings
+
+[GB] Sobi: Sobriety Tracker (v1.3.5) 4.75* / 44 ratings
+
+[GB] My Spiritual Toolkit AA Steps (v7.0.9) 4.89151* / 2922 ratings
+
+[GB] SoberQuest - Sobriety Tracker (v1.1.0) 0* / 0 ratings
+
+[GB] Sober SideKick: Quit Addiction (v5.9.2.6) 4.86849* / 365 ratings
+
+[GB] LiveSober: Sobriety Tracker (v1.0.6) 5* / 3 ratings
+
+[GB] Sober Me: Spiritual Toolkit (v2.5.2) 4.79612* / 103 ratings
+
+[GB] Sober Today - Day Counter (v1.9.3) 4.00793* / 126 ratings
+
+[IE] Lumen Sobriety: Quit Tracker (v1.2.0) 5* / 1 ratings
+
+[IE] I Am Sober (v8.6.7) 4.80982* / 2077 ratings
+
+[IE] Days Since: Quit Habit Tracker (v4.0.8) 4.85799* / 169 ratings
+
+[IE] Sober Time - Sobriety Counter (v4.3.08) 4.80711* / 197 ratings
+
+[IE] Nomo -  Sobriety Clocks (v7.9.167) 4.63157* / 57 ratings
+
+[IE] DayCount (v6.1) 4.59459* / 74 ratings
+
+[IE] Sunflower - Quit Any Addiction (v1.5.126) 4.76923* / 13 ratings
+
+[IE] Reframe: Drink Less & Thrive (v3.9.69) 4.66429* / 280 ratings
+
+[IE] Dayz - Sobriety Counter (v1.7.5) 5* / 6 ratings
+
+[IE] Sobo: Sober Best Friend (v1.5.38) 0* / 0 ratings
+
+[IE] Habit Tracker (v2.14.15) 4.76893* / 1558 ratings
+
+[IE] Sobriety Counter Stop Drinking (v1.7) 4.62295* / 61 ratings
+
+[IE] Sober: Sobriety Tracker (v12.0.0) 4.62667* / 75 ratings
+
+[IE] Sobriety Counter (v2.1) 0* / 0 ratings
+
+[IE] Clean Day — Sobriety Counter (v4.3.18) 4.58333* / 12 ratings
+
+[IE] SoberAI: AI Sobriety Sponsor (v2.1.7) 5* / 1 ratings
+
+[IE] Sobi: Sobriety Tracker (v1.3.5) 5* / 6 ratings
+
+[IE] My Spiritual Toolkit AA Steps (v7.0.9) 4.87113* / 194 ratings
+
+[IE] SoberQuest - Sobriety Tracker (v1.1.0) 0* / 0 ratings
+
+[IE] Sober SideKick: Quit Addiction (v5.9.2.6) 4.73913* / 23 ratings
+
+[IE] LiveSober: Sobriety Tracker (v1.0.6) 0* / 0 ratings
+
+[IE] Sober Today - Day Counter (v1.9.3) 4.33333* / 6 ratings
+
+[TR] Lumen Sobriety: Quit Tracker (v1.2.0) 5* / 1 ratings
+
+[TR] I Am Sober (v8.6.7) 4.84858* / 1235 ratings
+
+[TR] Days Since: Quit Habit Tracker (v4.0.8) 4.86885* / 122 ratings
+
+[TR] Sober Time - Sobriety Counter (v4.3.08) 4.57407* / 54 ratings
+
+[TR] Nomo -  Sobriety Clocks (v7.9.167) 4.5* / 8 ratings
+
+[TR] DayCount (v6.1) 4.60344* / 58 ratings
+
+[TR] Sunflower - Quit Any Addiction (v1.5.126) 5* / 1 ratings
+
+[TR] Reframe: Drink Less & Thrive (v3.9.69) 4.45455* / 22 ratings
+
+[TR] Dayz - Sobriety Counter (v1.7.5) 0* / 0 ratings
+
+[TR] Sobo: Sober Best Friend (v1.5.38) 4.5* / 2 ratings
+
+[TR] Habit Tracker (v2.14.15) 4.72987* / 5342 ratings
+
+[TR] Sobriety Counter Stop Drinking (v1.7) 5* / 6 ratings
+
+[TR] Sober: Sobriety Tracker (v12.0.0) 2.33333* / 3 ratings
+
+[TR] Sobriety Counter (v2.1) 0* / 0 ratings
+
+[TR] Clean Day — Sobriety Counter (v4.3.18) 4.48148* / 27 ratings
+
+[TR] SoberAI: AI Sobriety Sponsor (v2.1.7) 0* / 0 ratings
+
+[TR] Sobi: Sobriety Tracker (v1.3.5) 1* / 1 ratings
+
+[TR] My Spiritual Toolkit AA Steps (v7.0.9) 5* / 1 ratings
+
+[TR] SoberQuest - Sobriety Tracker (v1.1.0) 0* / 0 ratings
+
+[TR] Sober SideKick: Quit Addiction (v5.9.2.6) 4.33333* / 3 ratings
+
+[TR] LiveSober: Sobriety Tracker (v1.0.6) 0* / 0 ratings
+
+[TR] Sober Today - Day Counter (v1.9.3) 3* / 3 ratings
+
+[BR] Lumen Sobriety: Quit Tracker (v1.2.0) 0* / 0 ratings
+
+[BR] I Am Sober - Eu estou sóbrio/a (v8.6.7) 4.93717* / 9328 ratings
+
+[BR] Days Since: Quit Habit Tracker (v4.0.8) 4.88845* / 251 ratings
+
+[BR] Sober Time - Contador Dias (v4.3.08) 4.93597* / 531 ratings
+
+[BR] Nomo -  Sobriety Clocks (v7.9.167) 4.87234* / 47 ratings
+
+[BR] DayCount (v6.1) 4.67914* / 187 ratings
+
+[BR] Contador Sóbrio - Sunflower (v1.5.126) 5* / 10 ratings
+
+[BR] Reframe: Drink Less & Thrive (v3.9.69) 4.67692* / 65 ratings
+
+[BR] Days - Sobriety Counter (v1.7.5) 5* / 5 ratings
+
+[BR] Sobo: Sober Best Friend (v1.5.38) 5* / 1 ratings
+
+[BR] Habit Tracker - Hábitos (v2.14.15) 4.85661* / 23844 ratings
+
+[BR] Pare de álcool - EasyQuit (v1.7) 4.81731* / 208 ratings
+
+[BR] Sober: Recovery Tracker (v12.0.0) 4.8* / 20 ratings
+
+[BR] Sobriety Counter: Sobriedade (v2.1) 5* / 1 ratings
+
+[BR] Clean Day — Dry days (v4.3.18) 5* / 3 ratings
+
+[BR] SoberAI: AI Sobriety Sponsor (v2.1.7) 5* / 1 ratings
+
+[BR] Sobi: Sobriety Tracker (v1.3.5) 5* / 1 ratings
+
+[BR] My Spiritual Toolkit AA Steps (v7.0.9) 5* / 4 ratings
+
+[BR] SoberQuest - Sobriety Tracker (v1.1.0) 0* / 0 ratings
+
+[BR] Sober SideKick: Quit Addiction (v5.9.2.6) 5* / 2 ratings
+
+[BR] LiveSober: Sobriety Tracker (v1.0.6) 0* / 0 ratings
+
+[BR] Sober Today - Day Counter (v1.9.3) 0* / 0 ratings
+
+[ES] Lumen Sobriety: Quit Tracker (v1.2.0) 0* / 0 ratings
+
+[ES] I Am Sober - Estoy sobrio/a (v8.6.7) 4.83065* / 3360 ratings
+
+[ES] Days Since: Sober Streaks (v4.0.8) 4.79545* / 176 ratings
+
+[ES] Sober Time: Contador Sobriedad (v4.3.08) 4.74789* / 119 ratings
+
+[ES] Nomo -  Sobriety Clocks (v7.9.167) 4.42105* / 19 ratings
+
+[ES] DayCount (v6.1) 4.43243* / 37 ratings
+
+[ES] Sunflower: Mantente Sobrio/a (v1.5.126) 5* / 2 ratings
+
+[ES] Reframe: Bebe Menos y Prospera (v3.9.69) 4.36111* / 108 ratings
+
+[ES] Days - Sobriety Counter (v1.7.5) 5* / 2 ratings
+
+[ES] Sobo: Sober Best Friend (v1.5.38) 5* / 1 ratings
+
+[ES] Daily Planner routine schedule (v2.14.15) 4.70309* / 6086 ratings
+
+[ES] Dejar el alcohol - EasyQuit (v1.7) 4.68508* / 181 ratings
+
+[ES] Sober – Contador Sobriedad (v12.0.0) 4.625* / 16 ratings
+
+[ES] Sobriety Counter: Sobriedad (v2.1) 5* / 1 ratings
+
+[ES] Clean Day — Rastreador diario (v4.3.18) 4.48718* / 39 ratings
+
+[ES] SoberAI: AI Sobriety Sponsor (v2.1.7) 0* / 0 ratings
+
+[ES] Sobi: Sobriety Tracker (v1.3.5) 0* / 0 ratings
+
+[ES] My Spiritual Toolkit AA Steps (v7.0.9) 4.88889* / 9 ratings
+
+[ES] SoberQuest - Sobriety Tracker (v1.1.0) 0* / 0 ratings
+
+[ES] Sobrio Sidekick (v5.9.2.6) 4.88235* / 17 ratings
+
+[ES] LiveSober: Sobriety Tracker (v1.0.6) 0* / 0 ratings
+
+[ES] Sober Hoy - Salir del alcohol (v1.9.3) 3.90909* / 11 ratings
