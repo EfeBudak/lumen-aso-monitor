@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       countries:
-        description: "Space-separated storefronts to scan"
-        default: "us gb ie tr br es"
+        description: "Space-separated storefronts to scan (blank = each app's own markets)"
+        default: ""
 
 permissions:
   contents: write
@@ -21,20 +21,17 @@ concurrency:
 jobs:
   gap:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      # Scans every app (Lumen, Rock Identifier, A Star Shot), each across its
+      # own markets — or only the storefronts named in the `countries` input.
       - name: Run gap scans
-        run: |
-          for c in ${{ inputs.countries }}; do
-            echo "::group::$c"
-            python3 aso_monitor.py gap "$c"
-            echo "::endgroup::"
-          done
+        run: python3 aso_monitor.py gap all ${{ inputs.countries }}
 
       - name: Rebuild dashboard
         run: python3 aso_monitor.py report

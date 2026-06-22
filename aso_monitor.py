@@ -36,7 +36,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # ----------------------------- CONFIG -----------------------------
-MY_APP_ID = 6769856284  # Lumen
+# Each tracked app is a profile in APPS (defined at the end of this section).
+# The keyword-rank + competitor-metadata pass and the HTML dashboard loop over
+# every profile. The keyword-gap "opportunities" pipeline also covers every app
+# via per-app topic vocabularies in GAP_CONFIG (see the KEYWORD GAP SCAN section).
+MY_APP_ID = 6769856284  # Lumen — its sobriety keyword/competitor globals follow
 
 KEYWORDS = [
     "sober tracker",
@@ -87,6 +91,89 @@ COMPETITOR_IDS = [
 # markets that matter for you (US is the big one for sobriety apps).
 COUNTRIES = ["us", "gb", "ie", "tr", "br", "es"]
 
+# ---- Additional apps (core dashboard only; no opportunities scan yet) --------
+# Rock Identifier — geology / rock / mineral / crystal photo-ID app.
+ROCK_KEYWORDS = [
+    "rock identifier",
+    "rock identification",
+    "mineral identifier",
+    "crystal identifier",
+    "gem identifier",
+    "stone identifier",
+    "identify rocks",
+    "rock scanner",
+    "gemstone identifier",
+    "mineral identification",
+    "crystal identification",
+    "geology",
+]
+ROCK_COMPETITOR_IDS = [
+    1546796934,  # Rock Identifier: Stone ID (category leader)
+    1553800023,  # Rock & Crystal Identifier
+    1608573202,  # Stone Identifier - Rock Finder
+    6469999508,  # Rock ID - Stone Identifier
+    6754837588,  # RockIn Rock & Mineral identify
+    1531110109,  # Minerals Center
+    1528275327,  # Crystalyze: Crystal Identifier
+    1623138956,  # Healing Pal: Crystal Identifier
+    1513813469,  # A Guide To Crystals - The CC
+    6743672966,  # Rock Identifier - AI Rock ID
+    6752249234,  # Rock Identifier: Gem Value
+    6560107458,  # Lens Scan: Identify Anything
+]
+
+# A Star Shot — AI photo-to-art / avatar / style-transfer app.
+STAR_KEYWORDS = [
+    "ai photo",
+    "ai art generator",
+    "ai avatar",
+    "ai photo editor",
+    "photo to art",
+    "ai portrait",
+    "ai art",
+    "anime ai",
+    "ai headshot",
+    "ai selfie",
+    "art filter",
+    "ai image generator",
+]
+STAR_COMPETITOR_IDS = [
+    1191337894,  # Photoleap: AI Photo Generator
+    1642969698,  # AI Photo Generator: ARTA
+    1586366816,  # WOMBO Dream - AI Art Generator
+    1540719743,  # Toonapp: AI Photo & Video Art
+    1658822260,  # Momo: AI Photo & Video Maker
+    1621278575,  # Wonder - AI Art Generator
+    1580512844,  # starryai - AI Photo Generator
+    1508120751,  # ToonMe: AI Cartoon Face Maker
+    1436732536,  # Lensa AI: Photo Editor
+    1643890882,  # Dawn AI - Avatar generator
+    1669952628,  # MyMood AI: AI Photo Generator
+    6444115499,  # Anime Art - AI Art Generator
+]
+
+# Tracked-app profiles. The daily pass + dashboard loop over these. "slug"
+# namespaces each app's rows in the SQLite history and identifies it in the
+# report selector. Lumen reuses the globals above so the keyword-gap pipeline
+# (which still reads them) stays unchanged.
+APPS = [
+    {
+        "slug": "lumen", "name": "Lumen Sobriety", "app_id": MY_APP_ID,
+        "countries": COUNTRIES, "keywords": KEYWORDS,
+        "competitors": COMPETITOR_IDS,
+    },
+    {
+        "slug": "rock", "name": "Rock Identifier", "app_id": 6751188944,
+        "countries": ["us", "gb", "ie"], "keywords": ROCK_KEYWORDS,
+        "competitors": ROCK_COMPETITOR_IDS,
+    },
+    {
+        "slug": "starshot", "name": "A Star Shot", "app_id": 6755907563,
+        "countries": ["us", "gb", "ie"], "keywords": STAR_KEYWORDS,
+        "competitors": STAR_COMPETITOR_IDS,
+    },
+]
+
 DB_PATH = Path(__file__).with_name("aso_history.db")
 SEARCH_LIMIT = 200       # max Apple allows per search
 THROTTLE_SECONDS = 4     # be polite to the API
@@ -99,8 +186,8 @@ def http_get(url):
         return json.loads(resp.read().decode("utf-8"))
 
 
-def keyword_rank(term, country):
-    """Return (rank, top3) where rank is MY_APP_ID's 1-based position or None."""
+def keyword_rank(term, country, app_id):
+    """Return (rank, top3) where rank is app_id's 1-based position or None."""
     params = urllib.parse.urlencode({
         "term": term,
         "country": country,
@@ -112,7 +199,7 @@ def keyword_rank(term, country):
     results = data.get("results", [])
     rank = None
     for position, app in enumerate(results, start=1):
-        if app.get("trackId") == MY_APP_ID:
+        if app.get("trackId") == app_id:
             rank = position
             break
     top3 = [a.get("trackName", "?") for a in results[:3]]
@@ -144,18 +231,19 @@ def discover(term, country="us"):
 def init_db(conn):
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS ranks (
-            checked_at TEXT, country TEXT, keyword TEXT, rank INTEGER
+            checked_at TEXT, country TEXT, keyword TEXT, rank INTEGER,
+            app TEXT
         );
         CREATE TABLE IF NOT EXISTS metadata (
             checked_at TEXT, country TEXT, app_id INTEGER, app_name TEXT,
             version TEXT, rating REAL, rating_count INTEGER,
-            release_notes TEXT, description TEXT
+            release_notes TEXT, description TEXT, app TEXT
         );
         CREATE TABLE IF NOT EXISTS opportunities (
             checked_at TEXT, country TEXT, keyword TEXT,
             lumen_rank INTEGER, floor INTEGER, field_value INTEGER,
             winnability REAL, relevance REAL, score REAL, verdict TEXT,
-            demand REAL, suggest_rank INTEGER
+            demand REAL, suggest_rank INTEGER, app TEXT
         );
     """)
     # Migrate older databases that predate the demand columns.
@@ -164,15 +252,22 @@ def init_db(conn):
         conn.execute("ALTER TABLE opportunities ADD COLUMN demand REAL")
     if "suggest_rank" not in have:
         conn.execute("ALTER TABLE opportunities ADD COLUMN suggest_rank INTEGER")
+    # Migrate single-app databases to the multi-app schema. Every existing row
+    # predates the second/third app, so it belongs to Lumen.
+    for tbl in ("ranks", "metadata", "opportunities"):
+        cols = {r[1] for r in conn.execute(f"PRAGMA table_info({tbl})")}
+        if "app" not in cols:
+            conn.execute(f"ALTER TABLE {tbl} ADD COLUMN app TEXT")
+        conn.execute(f"UPDATE {tbl} SET app='lumen' WHERE app IS NULL")
     conn.commit()
 
 
-def last_metadata(conn, country, app_id):
+def last_metadata(conn, country, app_id, app):
     row = conn.execute("""
         SELECT version, release_notes, description, app_name
-        FROM metadata WHERE country=? AND app_id=?
+        FROM metadata WHERE country=? AND app_id=? AND app=?
         ORDER BY checked_at DESC LIMIT 1
-    """, (country, app_id)).fetchone()
+    """, (country, app_id, app)).fetchone()
     return row
 
 
@@ -208,21 +303,22 @@ def _two_latest_passes(conn):
     return cur, prev
 
 
-def _collect_changes(conn, cur, prev):
-    """Return (rank_changes, releases) between prev and cur passes."""
+def _collect_changes(conn, app, cur, prev):
+    """Return (rank_changes, releases) between prev and cur passes for one app."""
+    slug = app["slug"]
     rank_changes, releases = [], []
     if not prev:
         return rank_changes, releases
 
-    # Lumen rank movements (the only app whose rank we track).
-    for country in COUNTRIES:
-        for kw in KEYWORDS:
+    # This app's own keyword-rank movements.
+    for country in app["countries"]:
+        for kw in app["keywords"]:
             c = conn.execute(
-                "SELECT rank FROM ranks WHERE checked_at=? AND country=? AND keyword=?",
-                (cur, country, kw)).fetchone()
+                "SELECT rank FROM ranks WHERE checked_at=? AND country=? AND keyword=? AND app=?",
+                (cur, country, kw, slug)).fetchone()
             p = conn.execute(
-                "SELECT rank FROM ranks WHERE checked_at=? AND country=? AND keyword=?",
-                (prev, country, kw)).fetchone()
+                "SELECT rank FROM ranks WHERE checked_at=? AND country=? AND keyword=? AND app=?",
+                (prev, country, kw, slug)).fetchone()
             if not c or not p:
                 continue
             cr, pr = c[0], p[0]
@@ -238,15 +334,16 @@ def _collect_changes(conn, cur, prev):
                 rank_changes.append((cc, kw, f"#{pr} → #{cr}", direction))
 
     # Competitor (and own) release activity: version / title / notes / desc.
-    for country in COUNTRIES:
+    for country in app["countries"]:
         cur_rows = conn.execute(
             "SELECT app_id, app_name, version, release_notes, description "
-            "FROM metadata WHERE checked_at=? AND country=?", (cur, country)).fetchall()
+            "FROM metadata WHERE checked_at=? AND country=? AND app=?",
+            (cur, country, slug)).fetchall()
         for app_id, name, version, notes, desc in cur_rows:
             p = conn.execute(
                 "SELECT version, release_notes, description, app_name FROM metadata "
-                "WHERE checked_at=? AND country=? AND app_id=?",
-                (prev, country, app_id)).fetchone()
+                "WHERE checked_at=? AND country=? AND app_id=? AND app=?",
+                (prev, country, app_id, slug)).fetchone()
             if not p:
                 continue
             pv, pn, pd, pname = p
@@ -319,17 +416,18 @@ def _changes_html(rank_changes, releases, has_prev):
     return "".join(parts)
 
 
-def _heatmap_html(conn, cur):
-    head = "".join(f"<th>{c.upper()}</th>" for c in COUNTRIES)
+def _heatmap_html(conn, app, cur):
+    countries = app["countries"]
+    head = "".join(f"<th>{c.upper()}</th>" for c in countries)
     rows = []
     best = None
     ranked_cells = 0
-    for kw in KEYWORDS:
+    for kw in app["keywords"]:
         cells = []
-        for country in COUNTRIES:
+        for country in countries:
             r = conn.execute(
-                "SELECT rank FROM ranks WHERE checked_at=? AND country=? AND keyword=?",
-                (cur, country, kw)).fetchone()
+                "SELECT rank FROM ranks WHERE checked_at=? AND country=? AND keyword=? AND app=?",
+                (cur, country, kw, app["slug"])).fetchone()
             rank = r[0] if r else None
             if rank is not None:
                 ranked_cells += 1
@@ -343,20 +441,22 @@ def _heatmap_html(conn, cur):
     return table, best, ranked_cells
 
 
-def _leaderboards_html(conn, cur):
+def _leaderboards_html(conn, app, cur):
+    countries = app["countries"]
     blocks = []
-    for country in COUNTRIES:
+    for country in countries:
         rows = conn.execute(
             "SELECT app_id, app_name, rating, rating_count FROM metadata "
-            "WHERE checked_at=? AND country=? ORDER BY rating_count DESC NULLS LAST",
-            (cur, country)).fetchall()
+            "WHERE checked_at=? AND country=? AND app=? "
+            "ORDER BY rating_count DESC NULLS LAST",
+            (cur, country, app["slug"])).fetchall()
         if not rows:
             continue
         mx = max((r[3] or 0) for r in rows) or 1
         items = []
         for app_id, name, rating, rc in rows:
             rc = rc or 0
-            mine = (app_id == MY_APP_ID)
+            mine = (app_id == app["app_id"])
             pct = max(rc / mx * 100, 0.4)
             bar = "#378add" if mine else "#b4b2a9"
             cls = ' class="mine"' if mine else ""
@@ -367,7 +467,7 @@ def _leaderboards_html(conn, cur):
                 f'<div class="lb-bar"><div class="lb-fill" style="width:{pct:.1f}%;background:{bar}"></div></div>'
                 f'<div class="lb-num">{rc:,}</div><div class="lb-rt">{rating_txt}</div></div>')
         blocks.append(
-            f'<details class="lb"{" open" if country == COUNTRIES[0] else ""}>'
+            f'<details class="lb"{" open" if country == countries[0] else ""}>'
             f'<summary>{country.upper()} — {len(rows)} apps by rating count</summary>'
             f'{"".join(items)}</details>')
     return "".join(blocks)
@@ -379,20 +479,20 @@ _VERDICT_CLASS = {
 }
 
 
-def _country_blurb(rows):
+def _country_blurb(rows, app_name="Lumen"):
     """Plain-English read of one market's opportunity rows (keyword, score,
     suggest_rank, lumen_rank, floor, verdict tuples)."""
     targets = [r for r in rows if r[5] == "TARGET"]
-    ranked = [r for r in rows if r[3]]                     # Lumen in top 200
+    ranked = [r for r in rows if r[3]]                     # app in top 200
 
-    # Traction sentence: is this market warm or cold for Lumen?
+    # Traction sentence: is this market warm or cold for the app?
     if ranked:
         best = min(ranked, key=lambda r: r[3])
-        traction = (f"Lumen already ranks for {len(ranked)} of these "
+        traction = (f"{app_name} already ranks for {len(ranked)} of these "
                     f"(best <b>#{best[3]}</b> for “{_esc(best[0])}”), so this "
                     f"market is warm — climbing is easier than breaking in cold.")
     else:
-        traction = ("Lumen isn’t in the top 200 for any of these yet — all "
+        traction = (f"{app_name} isn’t in the top 200 for any of these yet — all "
                     "upside, but you’d be entering cold.")
 
     # Top opportunity sentence.
@@ -418,20 +518,20 @@ def _country_blurb(rows):
     return f'<p class="op-note">{traction} {lead}{vocab}</p>'
 
 
-def _opportunities_html(conn):
+def _opportunities_html(conn, app):
     """Top keyword opportunities per country from the latest gap scan."""
     blocks = []
     first = None
-    for country in COUNTRIES:
+    for country in app["countries"]:
         latest = conn.execute(
-            "SELECT MAX(checked_at) FROM opportunities WHERE country=?",
-            (country,)).fetchone()[0]
+            "SELECT MAX(checked_at) FROM opportunities WHERE country=? AND app=?",
+            (country, app["slug"])).fetchone()[0]
         if not latest:
             continue
         rows = conn.execute(
             "SELECT keyword, score, suggest_rank, lumen_rank, floor, verdict "
-            "FROM opportunities WHERE country=? AND checked_at=? "
-            "ORDER BY score DESC LIMIT 12", (country, latest)).fetchall()
+            "FROM opportunities WHERE country=? AND checked_at=? AND app=? "
+            "ORDER BY score DESC LIMIT 12", (country, latest, app["slug"])).fetchall()
         if not rows:
             continue
         mx = max((r[1] or 0) for r in rows) or 1
@@ -456,27 +556,67 @@ def _opportunities_html(conn):
             f'<details class="lb"{" open" if country == first else ""}>'
             f'<summary>{country.upper()} — top keyword targets '
             f'(scanned {_esc(latest[:10])})</summary>'
-            f'{_country_blurb(rows)}{"".join(items)}</details>')
+            f'{_country_blurb(rows, app["name"])}{"".join(items)}</details>')
     if not blocks:
-        return ('<p class="empty">No keyword scan yet — run '
-                '<code>python3 aso_monitor.py gap us</code> to populate this.</p>')
+        return ('<p class="empty">No keyword scan recorded yet — run '
+                f'<code>python3 aso_monitor.py gap {app["slug"]} us</code> '
+                '(or the ASO keyword scan workflow) to populate this.</p>')
     return "".join(blocks)
+
+
+def _app_section_html(conn, app, cur, prev):
+    """The per-app dashboard body (cards + panels), shown when its tab is active."""
+    rank_changes, releases = _collect_changes(conn, app, cur, prev)
+    changes = _changes_html(rank_changes, releases, prev is not None)
+    heat, best, ranked_cells = _heatmap_html(conn, app, cur)
+    opps = _opportunities_html(conn, app)
+    boards = _leaderboards_html(conn, app, cur)
+
+    total_cells = len(app["keywords"]) * len(app["countries"])
+    best_txt = f"{best[1]} #{best[0]}" if best else "unranked"
+    best_sub = best[2] if best else "no tracked term in top 200"
+    rel_count = len(releases) if prev else 0
+
+    return f"""
+  <div class="cards">
+    <div class="card"><div class="lab">Best rank</div><div class="big">{_esc(best_txt)}</div><div class="sub">{_esc(best_sub)}</div></div>
+    <div class="card"><div class="lab">Cells ranked</div><div class="big">{ranked_cells} / {total_cells}</div><div class="sub">keyword × market positions</div></div>
+    <div class="card"><div class="lab">Competitor releases</div><div class="big">{rel_count}</div><div class="sub">since last pass</div></div>
+  </div>
+
+  <h2>What changed since last pass</h2>
+  <div class="panel">{changes}</div>
+
+  <h2>Your keyword rank by market</h2>
+  {heat}
+  <div class="legend">
+    <span><i class="sw" style="background:#97c459"></i>top 50</span>
+    <span><i class="sw" style="background:#ef9f27"></i>51–100</span>
+    <span><i class="sw" style="background:#f0997b"></i>101–200</span>
+    <span><i class="sw" style="background:#f1efe8"></i>not in top 200</span>
+  </div>
+
+  <h2>Where to focus — keyword opportunities</h2>
+  {opps}
+
+  <h2>Competitors by market size</h2>
+  {boards}"""
 
 
 def write_html(conn, now):
     cur, prev = _two_latest_passes(conn)
     if not cur:
         return None
-    rank_changes, releases = _collect_changes(conn, cur, prev)
-    changes = _changes_html(rank_changes, releases, prev is not None)
-    heat, best, ranked_cells = _heatmap_html(conn, cur)
-    opps = _opportunities_html(conn)
-    boards = _leaderboards_html(conn, cur)
 
-    total_cells = len(KEYWORDS) * len(COUNTRIES)
-    best_txt = f"{best[1]} #{best[0]}" if best else "unranked"
-    best_sub = best[2] if best else "no tracked term in top 200"
-    rel_count = len(releases) if prev else 0
+    tabs, sections = [], []
+    for i, app in enumerate(APPS):
+        active = " active" if i == 0 else ""
+        tabs.append(
+            f'<button class="tab{active}" data-app="{app["slug"]}" '
+            f'onclick="showApp(\'{app["slug"]}\')">{_esc(app["name"])}</button>')
+        sections.append(
+            f'<section class="app-report{active}" data-app="{app["slug"]}">'
+            f'{_app_section_html(conn, app, cur, prev)}\n  </section>')
 
     page = f"""<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -543,35 +683,28 @@ def write_html(conn, now):
   .v-watch{{background:#f1efe8;color:#5f5e5a}}
   .v-hold{{background:#e6f1fb;color:#0c447c}}
   .v-skip{{background:#faece7;color:#993c1d}}
+  .tabs{{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 24px}}
+  .tab{{font:inherit;font-size:13px;font-weight:600;color:var(--mut);background:var(--card);border:.5px solid var(--bd);border-radius:999px;padding:7px 16px;cursor:pointer}}
+  .tab.active{{background:#2c2c2a;color:#fff;border-color:#2c2c2a}}
+  .app-report{{display:none}}
+  .app-report.active{{display:block}}
 </style>
 <div class="wrap">
-  <h1>Lumen ASO dashboard</h1>
+  <h1>ASO dashboard</h1>
   <div class="ts">pass @ {_esc(cur)}{' · comparing to ' + _esc(prev) if prev else ''}</div>
-
-  <div class="cards">
-    <div class="card"><div class="lab">Best rank</div><div class="big">{_esc(best_txt)}</div><div class="sub">{_esc(best_sub)}</div></div>
-    <div class="card"><div class="lab">Cells ranked</div><div class="big">{ranked_cells} / {total_cells}</div><div class="sub">keyword × market positions</div></div>
-    <div class="card"><div class="lab">Competitor releases</div><div class="big">{rel_count}</div><div class="sub">since last pass</div></div>
-  </div>
-
-  <h2>What changed since last pass</h2>
-  <div class="panel">{changes}</div>
-
-  <h2>Your keyword rank by market</h2>
-  {heat}
-  <div class="legend">
-    <span><i class="sw" style="background:#97c459"></i>top 50</span>
-    <span><i class="sw" style="background:#ef9f27"></i>51–100</span>
-    <span><i class="sw" style="background:#f0997b"></i>101–200</span>
-    <span><i class="sw" style="background:#f1efe8"></i>not in top 200</span>
-  </div>
-
-  <h2>Where to focus — keyword opportunities</h2>
-  {opps}
-
-  <h2>Competitors by market size</h2>
-  {boards}
+  <div class="tabs">{"".join(tabs)}</div>
+  {"".join(sections)}
 </div>
+<script>
+  function showApp(slug) {{
+    document.querySelectorAll('.app-report').forEach(function (s) {{
+      s.classList.toggle('active', s.dataset.app === slug);
+    }});
+    document.querySelectorAll('.tab').forEach(function (t) {{
+      t.classList.toggle('active', t.dataset.app === slug);
+    }});
+  }}
+</script>
 </html>"""
 
     out = DB_PATH.with_name(f"aso_report_{cur[:10]}.html")
@@ -644,15 +777,15 @@ STRONG_SUBJECTS = {
 }
 
 
-def build_topic_vocab(comp_meta, seed_terms):
+def build_topic_vocab(comp_meta, seed_terms, roots, modifiers, subjects):
     """On-topic word set for one storefront, in whatever language it uses.
 
-    English roots stay (English has real demand everywhere), plus: any word
-    appearing in 2+ competitor app names (a topic word, not a one-off brand),
-    plus every token from that market's localized seeds. This self-localizes
-    so Portuguese/Turkish/Spanish candidates can pass the relevance gate.
+    The app's roots/modifiers/subjects stay (English has real demand
+    everywhere), plus: any word appearing in 2+ competitor app names (a topic
+    word, not a one-off brand), plus every token from that market's localized
+    seeds. This self-localizes so non-English candidates pass the relevance gate.
     """
-    vocab = set(RELEVANT_ROOTS) | set(_GENERIC_MODIFIERS) | set(STRONG_SUBJECTS)
+    vocab = set(roots) | set(modifiers) | set(subjects)
     name_counts = Counter()
     for app in comp_meta.values():
         for t in set(_tokens(app.get("trackName", ""))):
@@ -687,6 +820,78 @@ HINT_SEEDS = [
     "dry", "relapse", "sponsor", "counter", "tracker",
 ]
 HINTS_URL = "https://search.itunes.apple.com/WebObjects/MZSearchHints.woa/wa/hints"
+
+
+# ---- Per-app gap-scan vocabularies -------------------------------------------
+# Each app's keyword-opportunity scan needs its own topic words so the relevance
+# gate keeps machine-mined/auto-discovered phrases on-brand. "subjects" are the
+# words that genuinely mean the topic (a mined candidate must contain at least
+# one); "roots" is the wider on-topic set (subjects + utility words); "modifiers"
+# are generic words that pair with a subject to form a real phrase. Curated
+# `keywords` in the app profile bypass this gate; only mined phrases are filtered.
+# NOTE: _tokens() drops tokens <=2 chars, so "ai" never survives tokenization —
+# A Star Shot's other words (avatar/anime/art/portrait...) carry the subject gate.
+
+# Rock Identifier — geology / rock / mineral / crystal / gem identification.
+ROCK_SUBJECTS = {
+    "rock", "rocks", "mineral", "minerals", "crystal", "crystals", "gem", "gems",
+    "gemstone", "gemstones", "stone", "stones", "geology", "geode", "geodes",
+    "ore", "fossil", "fossils", "quartz", "agate", "meteorite", "meteorites",
+}
+ROCK_MODIFIERS = {
+    "identifier", "identify", "identification", "scanner", "scan", "finder",
+    "find", "value", "guide", "collection", "collector",
+}
+ROCK_ROOTS = ROCK_SUBJECTS | ROCK_MODIFIERS | {
+    "mineralogy", "gemology", "appraisal", "geologist", "specimen", "lapidary",
+    "rockhound", "rockhounding",
+}
+ROCK_HINT_SEEDS = [
+    "rock", "rock identifier", "rock id", "mineral", "mineral identifier",
+    "crystal", "crystal identifier", "gem", "gemstone", "stone",
+    "stone identifier", "geode", "geology", "fossil", "quartz", "rock scanner",
+    "rock collection", "identify rock",
+]
+
+# A Star Shot — AI photo-to-art / avatar / style-transfer.
+STAR_SUBJECTS = {
+    "avatar", "avatars", "anime", "portrait", "portraits", "headshot",
+    "headshots", "selfie", "selfies", "art", "artwork", "cartoon", "painting",
+    "manga",
+}
+STAR_MODIFIERS = {
+    "generator", "editor", "maker", "filter", "filters", "photo", "image",
+    "face", "create", "creator", "style", "styles",
+}
+STAR_ROOTS = STAR_SUBJECTS | STAR_MODIFIERS | {
+    "photos", "images", "picture", "pictures", "edit", "generate", "effect",
+    "effects", "enhancer", "retouch", "collage", "camera", "video",
+}
+STAR_HINT_SEEDS = [
+    "ai photo", "ai art", "ai avatar", "ai portrait", "ai headshot", "ai selfie",
+    "anime", "anime ai", "art generator", "photo to art", "ai image", "cartoon",
+    "ai painting", "ai photo editor", "ai art generator",
+]
+
+# Topic config per app slug. Apps absent here have no opportunity scan (the
+# dashboard shows a placeholder for them).
+GAP_CONFIG = {
+    "lumen": {
+        "subjects": STRONG_SUBJECTS, "roots": RELEVANT_ROOTS,
+        "modifiers": _GENERIC_MODIFIERS, "hint_seeds": HINT_SEEDS,
+        "localized_seeds": LOCALIZED_SEEDS,
+    },
+    "rock": {
+        "subjects": ROCK_SUBJECTS, "roots": ROCK_ROOTS,
+        "modifiers": ROCK_MODIFIERS, "hint_seeds": ROCK_HINT_SEEDS,
+        "localized_seeds": {},
+    },
+    "starshot": {
+        "subjects": STAR_SUBJECTS, "roots": STAR_ROOTS,
+        "modifiers": STAR_MODIFIERS, "hint_seeds": STAR_HINT_SEEDS,
+        "localized_seeds": {},
+    },
+}
 
 
 def fetch_hints(prefix, country):
@@ -740,7 +945,7 @@ def demand_for(cand, term_rank):
     return round((10 - best) / 10.0, 2), best + 1
 
 
-def hint_discoveries(term_rank, known, vocab, limit=10):
+def hint_discoveries(term_rank, known, vocab, subjects, limit=10):
     """On-topic autocomplete terms we don't already track, popularity-ordered."""
     have = {k.lower() for k in known}
     out = []
@@ -748,24 +953,24 @@ def hint_discoveries(term_rank, known, vocab, limit=10):
         toks = _tokens(term)
         if len(toks) < 2 or term in have:
             continue
-        # Every word on-topic, and at least one a real sobriety subject — drops
-        # brands, generic tracker pairs, and cross-language junk.
-        if all(t in vocab for t in toks) and any(t in STRONG_SUBJECTS for t in toks):
+        # Every word on-topic, and at least one a real subject for this app —
+        # drops brands, generic word pairs, and cross-language junk.
+        if all(t in vocab for t in toks) and any(t in subjects for t in toks):
             out.append((term, rank + 1))
         if len(out) >= limit:
             break
     return out
 
 
-def mine_candidates(meta_by_id, existing, vocab, limit=15):
+def mine_candidates(meta_by_id, existing, vocab, subjects, limit=15):
     """Pull on-topic 2-word phrases out of competitor app names (any language)."""
     counts = Counter()
     for app in meta_by_id.values():
         words = _tokens(app.get("trackName", ""))
         for a, b in zip(words, words[1:]):
-            # Both words on-topic, at least one a real sobriety subject (drops
-            # brands and generic tracker pairs like "clean dry").
-            if a in vocab and b in vocab and (a in STRONG_SUBJECTS or b in STRONG_SUBJECTS):
+            # Both words on-topic, at least one a real subject (drops brands and
+            # generic word pairs like "clean dry").
+            if a in vocab and b in vocab and (a in subjects or b in subjects):
                 counts[f"{a} {b}"] += 1
     have = {k.lower() for k in existing}
     out = []
@@ -777,13 +982,16 @@ def mine_candidates(meta_by_id, existing, vocab, limit=15):
     return out
 
 
-def score_keyword(term, results, lumen_text, demand=0.05, suggest_rank=None,
-                  vocab=None):
-    """Return a dict of opportunity signals for one keyword's search field."""
+def score_keyword(term, results, app_text, app_id, demand=0.05,
+                  suggest_rank=None, vocab=None):
+    """Return a dict of opportunity signals for one keyword's search field.
+
+    The "lumen_rank" key is the tracked app's own rank (kept under that name to
+    match the long-standing `opportunities.lumen_rank` column)."""
     vocab = vocab or set()
     lumen_rank = None
     for pos, app in enumerate(results[:SEARCH_LIMIT], start=1):
-        if app.get("trackId") == MY_APP_ID:
+        if app.get("trackId") == app_id:
             lumen_rank = pos
             break
 
@@ -798,9 +1006,9 @@ def score_keyword(term, results, lumen_text, demand=0.05, suggest_rank=None,
     # Value: a term strong apps fight over is worth money (kept as a modifier).
     value = min(math.log10(field_value + 10) / 6.0, 1.0)
     # Relevance: keyword words on-topic for this market (localized vocab) or
-    # already present in Lumen's listing text. Language-correct per storefront.
+    # already present in the app's listing text. Language-correct per storefront.
     toks = _tokens(term)
-    present = sum(1 for t in toks if t in vocab or t in lumen_text)
+    present = sum(1 for t in toks if t in vocab or t in app_text)
     relevance = 1.0 if toks and present == len(toks) else (0.5 if present else 0.2)
     # Headroom: room to climb (already top 10 = little upside).
     if lumen_rank and lumen_rank <= 10:
@@ -836,44 +1044,55 @@ def score_keyword(term, results, lumen_text, demand=0.05, suggest_rank=None,
     }
 
 
-def keyword_gap(country="us"):
+def keyword_gap(app, country="us"):
     country = country.lower()
+    slug, name = app["slug"], app["name"]
+    cfg = GAP_CONFIG.get(slug)
+    if not cfg:
+        print(f"No keyword-gap config for {name} ({slug}) — skipping.")
+        return
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
 
-    # Lumen's own listing text drives the relevance check (prefer fresh DB copy).
+    # The app's own listing text drives the relevance check (prefer fresh DB).
     row = conn.execute(
-        "SELECT app_name, description FROM metadata WHERE country=? AND app_id=? "
-        "ORDER BY checked_at DESC LIMIT 1", (country, MY_APP_ID)).fetchone()
+        "SELECT app_name, description FROM metadata "
+        "WHERE country=? AND app_id=? AND app=? "
+        "ORDER BY checked_at DESC LIMIT 1", (country, app["app_id"], slug)).fetchone()
     if row:
-        lumen_text = f"{row[0]} {row[1]}".lower()
+        app_text = f"{row[0]} {row[1]}".lower()
     else:
-        m = lookup_metadata([MY_APP_ID], country).get(MY_APP_ID, {})
-        lumen_text = f"{m.get('trackName','')} {m.get('description','')}".lower()
+        m = lookup_metadata([app["app_id"]], country).get(app["app_id"], {})
+        app_text = f"{m.get('trackName','')} {m.get('description','')}".lower()
 
-    comp_meta = lookup_metadata(COMPETITOR_IDS, country)
-    localized = LOCALIZED_SEEDS.get(country, [])
-    vocab = build_topic_vocab(comp_meta, HINT_SEEDS + localized)
+    roots, modifiers, subjects = cfg["roots"], cfg["modifiers"], cfg["subjects"]
+    hint_seeds = cfg["hint_seeds"]
+    comp_meta = lookup_metadata(app["competitors"], country)
+    localized = cfg["localized_seeds"].get(country, [])
+    vocab = build_topic_vocab(comp_meta, hint_seeds + localized,
+                              roots, modifiers, subjects)
 
-    # Candidate pool: tracked English terms + this market's localized seeds +
+    # Candidate pool: curated keywords + this market's localized seeds +
     # phrases mined from the (localized) competitor names.
+    keywords = app["keywords"]
     base = list(dict.fromkeys(
-        KEYWORDS + localized + mine_candidates(comp_meta, KEYWORDS + localized, vocab)))
+        keywords + localized
+        + mine_candidates(comp_meta, keywords + localized, vocab, subjects)))
 
     # Demand: harvest Apple autocomplete (English + localized seeds), then let
     # it surface fresh candidates in whatever language the store uses.
-    print(f"Harvesting search demand for {country.upper()}"
+    print(f"[{name}] Harvesting search demand for {country.upper()}"
           f"{' (+localized)' if localized else ''}...")
-    seeds = HINT_SEEDS + localized + [k.split()[0] for k in base]
+    seeds = hint_seeds + localized + [k.split()[0] for k in base]
     term_rank = harvest_demand(seeds, country)
-    discovered = hint_discoveries(term_rank, base, vocab)
+    discovered = hint_discoveries(term_rank, base, vocab, subjects)
     candidates = list(dict.fromkeys(base + [t for t, _ in discovered]))
     if discovered:
         print("  autocomplete surfaced: "
               + ", ".join(f"{t} (#{r})" for t, r in discovered))
 
-    print(f"\nScanning {len(candidates)} keywords in {country.upper()} "
+    print(f"\n[{name}] Scanning {len(candidates)} keywords in {country.upper()} "
           f"(~{len(candidates) * THROTTLE_SECONDS}s)...\n")
 
     scored = []
@@ -885,22 +1104,23 @@ def keyword_gap(country="us"):
             time.sleep(THROTTLE_SECONDS)
             continue
         demand, srank = demand_for(term, term_rank)
-        s = score_keyword(term, results, lumen_text, demand, srank, vocab)
+        s = score_keyword(term, results, app_text, app["app_id"],
+                          demand, srank, vocab)
         scored.append(s)
         conn.execute(
             "INSERT INTO opportunities (checked_at, country, keyword, lumen_rank, "
             "floor, field_value, winnability, relevance, score, verdict, demand, "
-            "suggest_rank) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "suggest_rank, app) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (now, country, s["keyword"], s["lumen_rank"], s["floor"],
              s["field_value"], s["winnability"], s["relevance"], s["score"],
-             s["verdict"], s["demand"], s["suggest_rank"]))
+             s["verdict"], s["demand"], s["suggest_rank"], slug))
         time.sleep(THROTTLE_SECONDS)
     conn.commit()
     conn.close()
 
     scored.sort(key=lambda x: x["score"], reverse=True)
 
-    lines = [f"KEYWORD OPPORTUNITIES — {country.upper()} @ {now}",
+    lines = [f"KEYWORD OPPORTUNITIES — {name} — {country.upper()} @ {now}",
              "=" * 86,
              "score = demand x winnability x relevance x headroom (x value modifier)",
              "",
@@ -915,13 +1135,13 @@ def keyword_gap(country="us"):
             f"{s['floor']:>9,}  {s['verdict']:<11} {s['top_app'][:24]}")
     lines += ["",
               "demand    = Apple autocomplete rank for the term (#1 = most searched, — = not suggested)",
-              "you       = Lumen's current rank for the term",
+              f"you       = {name}'s current rank for the term",
               "pg1 floor = ratings of the WEAKEST app in the top 10 (low = crackable)",
               "TARGET    = real demand + winnable + on-brand and you're not there yet"]
     report = "\n".join(lines)
     print(report)
 
-    out = DB_PATH.with_name(f"aso_keyword_gaps_{country}_{now[:10]}.txt")
+    out = DB_PATH.with_name(f"aso_keyword_gaps_{slug}_{country}_{now[:10]}.txt")
     out.write_text(report)
     print(f"\nSaved: {out}")
 
@@ -950,40 +1170,45 @@ def run():
 
     summary = [f"ASO pass @ {now}", "=" * 48]
 
-    # 1) Keyword ranks
-    summary.append("\nKEYWORD RANKS (position in Search API results)")
-    for country in COUNTRIES:
-        summary.append(f"\n[{country.upper()}]")
-        for term in KEYWORDS:
-            rank, top3 = keyword_rank(term, country)
-            conn.execute(
-                "INSERT INTO ranks VALUES (?,?,?,?)",
-                (now, country, term, rank),
-            )
-            shown = f"#{rank}" if rank else "not in top 200"
-            summary.append(f"  {term:<22} {shown}")
-            time.sleep(THROTTLE_SECONDS)
-    conn.commit()
+    for profile in APPS:
+        slug, name = profile["slug"], profile["name"]
+        countries, keywords = profile["countries"], profile["keywords"]
+        summary.append(f"\n\n{'#' * 10} {name} {'#' * 10}")
 
-    # 2) Competitor metadata + change detection
-    watch = [MY_APP_ID] + COMPETITOR_IDS
-    if watch:
+        # 1) Keyword ranks
+        summary.append("\nKEYWORD RANKS (position in Search API results)")
+        for country in countries:
+            summary.append(f"\n[{country.upper()}]")
+            for term in keywords:
+                rank, top3 = keyword_rank(term, country, profile["app_id"])
+                conn.execute(
+                    "INSERT INTO ranks (checked_at, country, keyword, rank, app) "
+                    "VALUES (?,?,?,?,?)",
+                    (now, country, term, rank, slug),
+                )
+                shown = f"#{rank}" if rank else "not in top 200"
+                summary.append(f"  {term:<22} {shown}")
+                time.sleep(THROTTLE_SECONDS)
+        conn.commit()
+
+        # 2) Competitor (and own) metadata + change detection
+        watch = [profile["app_id"]] + profile["competitors"]
         summary.append("\n\nMETADATA SNAPSHOTS + CHANGES")
-        for country in COUNTRIES:
+        for country in countries:
             meta = lookup_metadata(watch, country)
             for app_id, app in meta.items():
                 version = app.get("version", "")
                 notes = app.get("releaseNotes", "")
                 desc = app.get("description", "")
-                name = app.get("trackName", "")
+                app_name = app.get("trackName", "")
 
-                prev = last_metadata(conn, country, app_id)
+                prev = last_metadata(conn, country, app_id, slug)
                 changes = []
                 if prev:
                     pv, pn, pd, pname = prev
                     if pv != version:
                         changes.append(f"version {pv} -> {version}")
-                    if pname != name:
+                    if pname != app_name:
                         changes.append("title changed")
                     if pn != notes:
                         changes.append("what's-new changed")
@@ -991,14 +1216,16 @@ def run():
                         changes.append("description changed")
 
                 conn.execute(
-                    "INSERT INTO metadata VALUES (?,?,?,?,?,?,?,?,?)",
-                    (now, country, app_id, name, version,
+                    "INSERT INTO metadata (checked_at, country, app_id, app_name, "
+                    "version, rating, rating_count, release_notes, description, app) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (now, country, app_id, app_name, version,
                      app.get("averageUserRating"),
-                     app.get("userRatingCount"), notes, desc),
+                     app.get("userRatingCount"), notes, desc, slug),
                 )
                 tag = "  *** " + ", ".join(changes) if changes else ""
                 summary.append(
-                    f"\n[{country.upper()}] {name} (v{version}) "
+                    f"\n[{country.upper()}] {app_name} (v{version}) "
                     f"{app.get('averageUserRating','?')}* "
                     f"/ {app.get('userRatingCount','?')} ratings{tag}"
                 )
@@ -1030,13 +1257,45 @@ def report_only():
         print("No history in the database yet — run a pass first.")
 
 
+def _app_by_slug(slug):
+    return next((p for p in APPS if p["slug"] == slug), None)
+
+
+def run_gap(args):
+    """Dispatch the `gap` command.
+
+      gap                      every app, each across its own markets
+      gap all [c1 c2 ...]      every app, optionally limited to those markets
+      gap <slug> [country]     one app; one market or all of its markets
+      gap <country>            backward-compat: Lumen for that one market
+    """
+    if not args or args[0] == "all":
+        wanted = {c.lower() for c in args[1:]}            # empty = no filter
+        for prof in APPS:
+            if prof["slug"] not in GAP_CONFIG:
+                continue
+            for c in prof["countries"]:
+                if not wanted or c in wanted:
+                    keyword_gap(prof, c)
+        return
+    prof = _app_by_slug(args[0])
+    if prof is None:                                      # `gap us` style
+        keyword_gap(APPS[0], args[0])
+        return
+    if len(args) > 1:
+        keyword_gap(prof, args[1])
+    else:
+        for c in prof["countries"]:
+            keyword_gap(prof, c)
+
+
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "discover":
         discover(sys.argv[2] if len(sys.argv) > 2 else "sobriety tracker")
     elif len(sys.argv) >= 2 and sys.argv[1] == "report":
         report_only()
     elif len(sys.argv) >= 2 and sys.argv[1] == "gap":
-        keyword_gap(sys.argv[2] if len(sys.argv) > 2 else "us")
+        run_gap(sys.argv[2:])
     elif len(sys.argv) >= 2 and sys.argv[1] == "demand":
         demand_report(sys.argv[2] if len(sys.argv) > 2 else "us")
     else:
