@@ -1,3 +1,12 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Generated artifacts — rebuilt from aso_history.db on every run, never committed.
+# CI deploys the dashboard to GitHub Pages; locally, `aso_monitor.py report`
+# regenerates them for offline viewing. Keeping them out of git is what stops
+# the recurring merge conflicts (only the DB is committed, by CI alone).
+index.html
+aso_report_*.html
+aso_report_*.txt
+aso_keyword_gaps_*.txt

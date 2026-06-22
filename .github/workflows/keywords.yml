@@ -12,7 +12,9 @@ on:
         default: ""
 
 permissions:
-  contents: write
+  contents: write              # commit the history DB
+  pages: write                 # deploy the dashboard to Pages
+  id-token: write              # required by deploy-pages
 
 concurrency:
   group: aso-write             # shares the lock with the daily job
@@ -36,11 +38,31 @@ jobs:
       - name: Rebuild dashboard
         run: python3 aso_monitor.py report
 
-      - name: Commit results
+      - name: Commit history DB
         run: |
           git config user.name  "aso-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add aso_history.db index.html aso_report_*.html aso_keyword_gaps_*.txt
+          git add aso_history.db
           git commit -m "ASO keyword scan $(date -u +%F) [skip ci]" || { echo "no changes"; exit 0; }
           git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
           git push
+
+      - name: Assemble Pages site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp aso_report_*.html _site/ 2>/dev/null || true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: gap
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

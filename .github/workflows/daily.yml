@@ -1,9 +1,11 @@
 name: ASO daily
 
-# Runs the daily monitoring pass in the cloud, commits the updated history +
-# report back to the repo, and (via Pages serving the repo root) publishes the
-# latest dashboard at a stable URL. No secrets needed — the tool only calls
-# Apple's public API and has no dependencies.
+# Runs the daily monitoring pass in the cloud, commits ONLY the updated history
+# DB back to the repo, and deploys the freshly built dashboard to GitHub Pages.
+# The generated HTML/reports are gitignored (rebuilt every run), so the sole
+# committed artifact is aso_history.db — that's what keeps this conflict-free.
+# Pages source must be set to "GitHub Actions" (Settings → Pages). No secrets
+# needed — the tool only calls Apple's public API and has no dependencies.
 
 on:
   schedule:
@@ -23,7 +25,9 @@ on:
         options: ["pass", "report"]
 
 permissions:
-  contents: write
+  contents: write              # commit the history DB
+  pages: write                 # deploy the dashboard to Pages
+  id-token: write              # required by deploy-pages
 
 concurrency:
   group: aso-write             # never let daily + keyword scans push at once
@@ -66,11 +70,33 @@ jobs:
             python3 aso_monitor.py             # full pass (scheduled runs land here)
           fi
 
-      - name: Commit history + report
+      - name: Commit history DB
         run: |
           git config user.name  "aso-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add aso_history.db index.html aso_report_*.html aso_report_*.txt
+          git add aso_history.db
           git commit -m "ASO daily $(date -u +%F) [skip ci]" || { echo "no changes"; exit 0; }
           git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
           git push
+
+      - name: Assemble Pages site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp aso_report_*.html _site/ 2>/dev/null || true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  # Publish the built dashboard to GitHub Pages. Skipped automatically when the
+  # gate skips the run job.
+  deploy:
+    needs: run
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
