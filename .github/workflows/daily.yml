@@ -1,22 +1,15 @@
 name: ASO daily
 
-# Runs the daily monitoring pass in the cloud, commits ONLY the updated history
-# DB back to the repo, and deploys the freshly built dashboard to GitHub Pages.
-# The generated HTML/reports are gitignored (rebuilt every run), so the sole
-# committed artifact is aso_history.db — that's what keeps this conflict-free.
-# Pages source must be set to "GitHub Actions" (Settings → Pages). No secrets
-# needed — the tool only calls Apple's public API and has no dependencies.
+# On-demand only: runs the monitoring pass in the cloud, commits ONLY the
+# updated history DB back to the repo, and deploys the freshly built dashboard
+# to GitHub Pages. The generated HTML/reports are gitignored (rebuilt every
+# run), so the sole committed artifact is aso_history.db — that's what keeps
+# this conflict-free. Pages source must be set to "GitHub Actions"
+# (Settings → Pages). No secrets needed — the tool only calls Apple's public
+# API and has no dependencies.
 
 on:
-  schedule:
-    # GitHub cron is UTC-only and DST-unaware. 07:00 Dublin is 06:00 UTC in
-    # summer (IST, UTC+1) and 07:00 UTC in winter (GMT). Trigger at both and let
-    # the `gate` job below run only when it is actually 07:00 in Dublin, so the
-    # pass fires exactly once per day at 7am local time year-round. Minute is
-    # offset off the top of the hour to dodge GitHub's :00 scheduling congestion.
-    - cron: "7 6 * * *"      # 07:07 Dublin during IST (summer)
-    - cron: "7 7 * * *"      # 07:07 Dublin during GMT (winter)
-  workflow_dispatch:           # also runnable on-demand from the Actions tab
+  workflow_dispatch:           # run from the Actions tab
     inputs:
       mode:
         description: "pass = fetch fresh data + rebuild; report = rebuild report only (no API calls, keeps current diff window)"
@@ -34,27 +27,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Scheduled runs fire at both 06:07 and 07:07 UTC (see cron note above); only
-  # the one matching 07:00 Dublin proceeds. Manual dispatch always proceeds.
-  gate:
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.check.outputs.run }}
-    steps:
-      - id: check
-        run: |
-          if [ "${{ github.event_name }}" != "schedule" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          elif [ "$(TZ=Europe/Dublin date +%H)" = "07" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Dublin time is $(TZ=Europe/Dublin date +%H:%M) — not 07:00, skipping."
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
-
   run:
-    needs: gate
-    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +40,7 @@ jobs:
           if [ "${{ inputs.mode }}" = "report" ]; then
             python3 aso_monitor.py report      # rebuild from history, no API calls
           else
-            python3 aso_monitor.py             # full pass (scheduled runs land here)
+            python3 aso_monitor.py             # full pass
           fi
 
       - name: Commit history DB
@@ -89,8 +62,7 @@ jobs:
         with:
           path: _site
 
-  # Publish the built dashboard to GitHub Pages. Skipped automatically when the
-  # gate skips the run job.
+  # Publish the built dashboard to GitHub Pages.
   deploy:
     needs: run
     runs-on: ubuntu-latest
