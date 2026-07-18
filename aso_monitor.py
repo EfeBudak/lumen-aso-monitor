@@ -152,6 +152,41 @@ STAR_COMPETITOR_IDS = [
     6444115499,  # Anime Art - AI Art Generator
 ]
 
+# Before After — pre-launch (no App Store ID yet): local-first progress-photo
+# body-transformation tracker with auto-aligned timelapse export. Only the
+# keyword-opportunity scan runs for it until it ships; the daily rank/metadata
+# pass skips profiles whose app_id is None.
+BEFORE_KEYWORDS = [
+    "progress photos",
+    "progress pics",
+    "body transformation",
+    "body progress tracker",
+    "body tracker",
+    "gym progress",
+    "transformation tracker",
+    "before and after photos",
+    "weight loss progress",
+    "photo progress tracker",
+    "body timelapse",
+    "fitness photo tracker",
+]
+BEFORE_COMPETITOR_IDS = [
+    583840813,   # Progress Body Tracker: My BMI (category leader)
+    1265152738,  # Body tracker: Photo & measure
+    1369905597,  # FormaTrack - Body Tracker
+    877133105,   # Selfie A Day - Everyday Photo
+    1537250336,  # Photo Compare - Before & After
+    1547114493,  # Progress Snapshot Body Tracker
+    1180244595,  # Snapsie - Take progress pictures
+    6499454966,  # My Body Tracker: PhotoJourney
+    6544789120,  # Progress Pic Photos: Metamorph
+    6759252082,  # GainFrame: Gym Progress Photos
+    6758867697,  # Body Tracker - Progress Photos
+    6747368316,  # Progress Pics - Body Tracker
+    6759237484,  # Morf: Body Transformation
+    1131633112,  # Body Fit Progress Tracker - Photo & Measurements
+]
+
 # Tracked-app profiles. The daily pass + dashboard loop over these. "slug"
 # namespaces each app's rows in the SQLite history and identifies it in the
 # report selector. Lumen reuses the globals above so the keyword-gap pipeline
@@ -171,6 +206,11 @@ APPS = [
         "slug": "starshot", "name": "A Star Shot", "app_id": 6755907563,
         "countries": ["us", "gb", "ie"], "keywords": STAR_KEYWORDS,
         "competitors": STAR_COMPETITOR_IDS,
+    },
+    {
+        "slug": "beforeafter", "name": "Before After", "app_id": None,
+        "countries": ["us", "gb", "ie"], "keywords": BEFORE_KEYWORDS,
+        "competitors": BEFORE_COMPETITOR_IDS,
     },
 ]
 
@@ -873,6 +913,28 @@ STAR_HINT_SEEDS = [
     "ai painting", "ai photo editor", "ai art generator",
 ]
 
+# Before After — progress-photo body-transformation tracking / timelapse.
+BEFORE_SUBJECTS = {
+    "body", "physique", "transformation", "transformations", "progress",
+    "gym", "fitness", "muscle", "muscles", "weight", "bodybuilding",
+    "workout", "workouts", "gains",
+}
+BEFORE_MODIFIERS = {
+    "photo", "photos", "pic", "pics", "picture", "pictures", "tracker",
+    "track", "tracking", "timelapse", "lapse", "compare", "comparison",
+    "before", "after", "journal", "diary", "log", "camera", "selfie",
+    "snapshot", "daily", "journey", "measure", "measurements",
+}
+BEFORE_ROOTS = BEFORE_SUBJECTS | BEFORE_MODIFIERS | {
+    "bulking", "cutting", "lean", "gain", "loss", "shredded", "checkin",
+}
+BEFORE_HINT_SEEDS = [
+    "progress photo", "progress photos", "progress pics", "body transformation",
+    "body progress", "body tracker", "gym progress", "weight loss photo",
+    "before and after", "transformation", "physique", "fitness photo",
+    "photo progress", "body timelapse", "muscle growth", "selfie a day",
+]
+
 # Topic config per app slug. Apps absent here have no opportunity scan (the
 # dashboard shows a placeholder for them).
 GAP_CONFIG = {
@@ -889,6 +951,11 @@ GAP_CONFIG = {
     "starshot": {
         "subjects": STAR_SUBJECTS, "roots": STAR_ROOTS,
         "modifiers": STAR_MODIFIERS, "hint_seeds": STAR_HINT_SEEDS,
+        "localized_seeds": {},
+    },
+    "beforeafter": {
+        "subjects": BEFORE_SUBJECTS, "roots": BEFORE_ROOTS,
+        "modifiers": BEFORE_MODIFIERS, "hint_seeds": BEFORE_HINT_SEEDS,
         "localized_seeds": {},
     },
 }
@@ -991,7 +1058,7 @@ def score_keyword(term, results, app_text, app_id, demand=0.05,
     vocab = vocab or set()
     lumen_rank = None
     for pos, app in enumerate(results[:SEARCH_LIMIT], start=1):
-        if app.get("trackId") == app_id:
+        if app_id is not None and app.get("trackId") == app_id:
             lumen_rank = pos
             break
 
@@ -1056,15 +1123,20 @@ def keyword_gap(app, country="us"):
     init_db(conn)
 
     # The app's own listing text drives the relevance check (prefer fresh DB).
-    row = conn.execute(
-        "SELECT app_name, description FROM metadata "
-        "WHERE country=? AND app_id=? AND app=? "
-        "ORDER BY checked_at DESC LIMIT 1", (country, app["app_id"], slug)).fetchone()
-    if row:
-        app_text = f"{row[0]} {row[1]}".lower()
+    # Pre-launch apps have no listing yet, so their curated keywords stand in.
+    if app["app_id"] is None:
+        app_text = " ".join(app["keywords"]).lower()
     else:
-        m = lookup_metadata([app["app_id"]], country).get(app["app_id"], {})
-        app_text = f"{m.get('trackName','')} {m.get('description','')}".lower()
+        row = conn.execute(
+            "SELECT app_name, description FROM metadata "
+            "WHERE country=? AND app_id=? AND app=? "
+            "ORDER BY checked_at DESC LIMIT 1",
+            (country, app["app_id"], slug)).fetchone()
+        if row:
+            app_text = f"{row[0]} {row[1]}".lower()
+        else:
+            m = lookup_metadata([app["app_id"]], country).get(app["app_id"], {})
+            app_text = f"{m.get('trackName','')} {m.get('description','')}".lower()
 
     roots, modifiers, subjects = cfg["roots"], cfg["modifiers"], cfg["subjects"]
     hint_seeds = cfg["hint_seeds"]
@@ -1172,6 +1244,10 @@ def run():
 
     for profile in APPS:
         slug, name = profile["slug"], profile["name"]
+        if profile["app_id"] is None:
+            summary.append(f"\n\n{'#' * 10} {name} {'#' * 10}"
+                           "\n(pre-launch — no listing to track yet; skipped)")
+            continue
         countries, keywords = profile["countries"], profile["keywords"]
         summary.append(f"\n\n{'#' * 10} {name} {'#' * 10}")
 

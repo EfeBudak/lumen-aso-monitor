@@ -30,8 +30,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Scans every app (Lumen, Rock Identifier, A Star Shot), each across its
-      # own markets — or only the storefronts named in the `countries` input.
+      # Scans every app (Lumen, Rock Identifier, A Star Shot, Before After),
+      # each across its own markets — or only the storefronts named in the
+      # `countries` input.
       - name: Run gap scans
         run: python3 aso_monitor.py gap all ${{ inputs.countries }}
 
