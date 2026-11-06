@@ -87,9 +87,8 @@ COMPETITOR_IDS = [
     295775656   ,# 12 Steps Companion AA Big Book
 ]
 
-# Storefronts to track. ASO ranking is country-specific, so track the
-# markets that matter for you (US is the big one for sobriety apps).
-COUNTRIES = ["us", "gb", "ie", "tr", "br", "es"]
+# Storefronts to track. US only — it's the market we focus on.
+COUNTRIES = ["us"]
 
 # ---- Additional apps (core dashboard only; no opportunities scan yet) --------
 # Rock Identifier — geology / rock / mineral / crystal photo-ID app.
@@ -122,71 +121,6 @@ ROCK_COMPETITOR_IDS = [
     6560107458,  # Lens Scan: Identify Anything
 ]
 
-# A Star Shot — AI photo-to-art / avatar / style-transfer app.
-STAR_KEYWORDS = [
-    "ai photo",
-    "ai art generator",
-    "ai avatar",
-    "ai photo editor",
-    "photo to art",
-    "ai portrait",
-    "ai art",
-    "anime ai",
-    "ai headshot",
-    "ai selfie",
-    "art filter",
-    "ai image generator",
-]
-STAR_COMPETITOR_IDS = [
-    1191337894,  # Photoleap: AI Photo Generator
-    1642969698,  # AI Photo Generator: ARTA
-    1586366816,  # WOMBO Dream - AI Art Generator
-    1540719743,  # Toonapp: AI Photo & Video Art
-    1658822260,  # Momo: AI Photo & Video Maker
-    1621278575,  # Wonder - AI Art Generator
-    1580512844,  # starryai - AI Photo Generator
-    1508120751,  # ToonMe: AI Cartoon Face Maker
-    1436732536,  # Lensa AI: Photo Editor
-    1643890882,  # Dawn AI - Avatar generator
-    1669952628,  # MyMood AI: AI Photo Generator
-    6444115499,  # Anime Art - AI Art Generator
-]
-
-# Before After — pre-launch (no App Store ID yet): local-first progress-photo
-# body-transformation tracker with auto-aligned timelapse export. Only the
-# keyword-opportunity scan runs for it until it ships; the daily rank/metadata
-# pass skips profiles whose app_id is None.
-BEFORE_KEYWORDS = [
-    "progress photos",
-    "progress pics",
-    "body transformation",
-    "body progress tracker",
-    "body tracker",
-    "gym progress",
-    "transformation tracker",
-    "before and after photos",
-    "weight loss progress",
-    "photo progress tracker",
-    "body timelapse",
-    "fitness photo tracker",
-]
-BEFORE_COMPETITOR_IDS = [
-    583840813,   # Progress Body Tracker: My BMI (category leader)
-    1265152738,  # Body tracker: Photo & measure
-    1369905597,  # FormaTrack - Body Tracker
-    877133105,   # Selfie A Day - Everyday Photo
-    1537250336,  # Photo Compare - Before & After
-    1547114493,  # Progress Snapshot Body Tracker
-    1180244595,  # Snapsie - Take progress pictures
-    6499454966,  # My Body Tracker: PhotoJourney
-    6544789120,  # Progress Pic Photos: Metamorph
-    6759252082,  # GainFrame: Gym Progress Photos
-    6758867697,  # Body Tracker - Progress Photos
-    6747368316,  # Progress Pics - Body Tracker
-    6759237484,  # Morf: Body Transformation
-    1131633112,  # Body Fit Progress Tracker - Photo & Measurements
-]
-
 # Tracked-app profiles. The daily pass + dashboard loop over these. "slug"
 # namespaces each app's rows in the SQLite history and identifies it in the
 # report selector. Lumen reuses the globals above so the keyword-gap pipeline
@@ -199,18 +133,8 @@ APPS = [
     },
     {
         "slug": "rock", "name": "Rock Identifier", "app_id": 6751188944,
-        "countries": ["us", "gb", "ie"], "keywords": ROCK_KEYWORDS,
+        "countries": COUNTRIES, "keywords": ROCK_KEYWORDS,
         "competitors": ROCK_COMPETITOR_IDS,
-    },
-    {
-        "slug": "starshot", "name": "A Star Shot", "app_id": 6755907563,
-        "countries": ["us", "gb", "ie"], "keywords": STAR_KEYWORDS,
-        "competitors": STAR_COMPETITOR_IDS,
-    },
-    {
-        "slug": "beforeafter", "name": "Before After", "app_id": None,
-        "countries": ["us", "gb", "ie"], "keywords": BEFORE_KEYWORDS,
-        "competitors": BEFORE_COMPETITOR_IDS,
     },
 ]
 
@@ -778,18 +702,6 @@ _GENERIC_MODIFIERS = {
     "less", "more", "stop", "daily", "since", "time", "count", "log",
     "calendar", "free", "soberity", "control",
 }
-# Native-language seed terms per non-English storefront. Verified against the
-# live autocomplete — each returns real localized sobriety queries. Without
-# these, an English-only pipeline is blind to the local-language demand pool.
-LOCALIZED_SEEDS = {
-    "tr": ["alkol bırakma", "sigara bırakma", "bağımlılık", "gün sayacı",
-           "alışkanlık", "sayaç"],
-    "br": ["parar de beber", "sobriedade", "contador de sobriedade",
-           "dias sem beber", "parar de fumar", "sóbrio", "alcoolismo"],
-    "es": ["dejar de beber", "sobriedad", "contador de sobriedad",
-           "dejar de fumar", "sobrio", "dejar el alcohol", "racha"],
-}
-
 
 def _tokens(text):
     """Lowercase word tokens, Unicode-aware (keeps á, ç, ı, ş, ü ...)."""
@@ -797,33 +709,22 @@ def _tokens(text):
             if len(t) > 2 and t not in _STOPWORDS]
 
 
-# Subject anchors: words that genuinely mean "sobriety / quitting / addiction"
-# in our markets' languages. A mined or auto-discovered candidate must contain
-# at least one — that's what stops generic tracker-word pairs (e.g. "clean dry"
-# → a laundry app, "time contador") from leaking in. Curated KEYWORDS and
-# LOCALIZED_SEEDS bypass this gate; only machine-generated phrases are filtered.
+# Subject anchors: words that genuinely mean "sobriety / quitting / addiction".
+# A mined or auto-discovered candidate must contain at least one — that's what
+# stops generic tracker-word pairs (e.g. "clean dry" → a laundry app) from
+# leaking in. Curated KEYWORDS bypass this gate; only machine-generated phrases
+# are filtered.
 STRONG_SUBJECTS = {
-    # English
     "sober", "sobriety", "drink", "drinking", "drunk", "alcohol", "alcoholic",
     "addiction", "addict", "recovery", "relapse", "sponsor", "quit", "quitting",
     "smoking", "smoke", "vaping", "vape",
-    # Portuguese
-    "sobriedade", "sóbrio", "sobrio", "beber", "bebida", "álcool", "alcool",
-    "alcoolismo", "fumar", "vício", "vicio", "recuperação",
-    # Spanish
-    "sobriedad", "alcohólico", "alcoholico", "adicción", "adiccion", "recuperación",
-    # Turkish
-    "alkol", "alkolü", "ayık", "ayıklık", "içki", "sigara", "bağımlılık", "bağımlı",
 }
 
 
 def build_topic_vocab(comp_meta, seed_terms, roots, modifiers, subjects):
-    """On-topic word set for one storefront, in whatever language it uses.
-
-    The app's roots/modifiers/subjects stay (English has real demand
-    everywhere), plus: any word appearing in 2+ competitor app names (a topic
-    word, not a one-off brand), plus every token from that market's localized
-    seeds. This self-localizes so non-English candidates pass the relevance gate.
+    """On-topic word set: the app's roots/modifiers/subjects, plus any word
+    appearing in 2+ competitor app names (a topic word, not a one-off brand),
+    plus every token from the seed terms.
     """
     vocab = set(roots) | set(modifiers) | set(subjects)
     name_counts = Counter()
@@ -848,10 +749,7 @@ def search_field(term, country):
 
 # Storefront IDs for the App Store search-hints (autocomplete) endpoint.
 # Autocomplete order is Apple's own popularity ranking — our demand signal.
-STOREFRONTS = {
-    "us": "143441", "gb": "143444", "ie": "143449",
-    "tr": "143480", "br": "143503", "es": "143454",
-}
+STOREFRONTS = {"us": "143441"}
 # Seed prefixes to type into autocomplete. Apple returns its most-searched
 # completions for each, which both scores our candidates and surfaces new ones.
 HINT_SEEDS = [
@@ -869,8 +767,6 @@ HINTS_URL = "https://search.itunes.apple.com/WebObjects/MZSearchHints.woa/wa/hin
 # one); "roots" is the wider on-topic set (subjects + utility words); "modifiers"
 # are generic words that pair with a subject to form a real phrase. Curated
 # `keywords` in the app profile bypass this gate; only mined phrases are filtered.
-# NOTE: _tokens() drops tokens <=2 chars, so "ai" never survives tokenization —
-# A Star Shot's other words (avatar/anime/art/portrait...) carry the subject gate.
 
 # Rock Identifier — geology / rock / mineral / crystal / gem identification.
 ROCK_SUBJECTS = {
@@ -893,70 +789,16 @@ ROCK_HINT_SEEDS = [
     "rock collection", "identify rock",
 ]
 
-# A Star Shot — AI photo-to-art / avatar / style-transfer.
-STAR_SUBJECTS = {
-    "avatar", "avatars", "anime", "portrait", "portraits", "headshot",
-    "headshots", "selfie", "selfies", "art", "artwork", "cartoon", "painting",
-    "manga",
-}
-STAR_MODIFIERS = {
-    "generator", "editor", "maker", "filter", "filters", "photo", "image",
-    "face", "create", "creator", "style", "styles",
-}
-STAR_ROOTS = STAR_SUBJECTS | STAR_MODIFIERS | {
-    "photos", "images", "picture", "pictures", "edit", "generate", "effect",
-    "effects", "enhancer", "retouch", "collage", "camera", "video",
-}
-STAR_HINT_SEEDS = [
-    "ai photo", "ai art", "ai avatar", "ai portrait", "ai headshot", "ai selfie",
-    "anime", "anime ai", "art generator", "photo to art", "ai image", "cartoon",
-    "ai painting", "ai photo editor", "ai art generator",
-]
-
-# Before After — progress-photo body-transformation tracking / timelapse.
-BEFORE_SUBJECTS = {
-    "body", "physique", "transformation", "transformations", "progress",
-    "gym", "fitness", "muscle", "muscles", "weight", "bodybuilding",
-    "workout", "workouts", "gains",
-}
-BEFORE_MODIFIERS = {
-    "photo", "photos", "pic", "pics", "picture", "pictures", "tracker",
-    "track", "tracking", "timelapse", "lapse", "compare", "comparison",
-    "before", "after", "journal", "diary", "log", "camera", "selfie",
-    "snapshot", "daily", "journey", "measure", "measurements",
-}
-BEFORE_ROOTS = BEFORE_SUBJECTS | BEFORE_MODIFIERS | {
-    "bulking", "cutting", "lean", "gain", "loss", "shredded", "checkin",
-}
-BEFORE_HINT_SEEDS = [
-    "progress photo", "progress photos", "progress pics", "body transformation",
-    "body progress", "body tracker", "gym progress", "weight loss photo",
-    "before and after", "transformation", "physique", "fitness photo",
-    "photo progress", "body timelapse", "muscle growth", "selfie a day",
-]
-
 # Topic config per app slug. Apps absent here have no opportunity scan (the
 # dashboard shows a placeholder for them).
 GAP_CONFIG = {
     "lumen": {
         "subjects": STRONG_SUBJECTS, "roots": RELEVANT_ROOTS,
         "modifiers": _GENERIC_MODIFIERS, "hint_seeds": HINT_SEEDS,
-        "localized_seeds": LOCALIZED_SEEDS,
     },
     "rock": {
         "subjects": ROCK_SUBJECTS, "roots": ROCK_ROOTS,
         "modifiers": ROCK_MODIFIERS, "hint_seeds": ROCK_HINT_SEEDS,
-        "localized_seeds": {},
-    },
-    "starshot": {
-        "subjects": STAR_SUBJECTS, "roots": STAR_ROOTS,
-        "modifiers": STAR_MODIFIERS, "hint_seeds": STAR_HINT_SEEDS,
-        "localized_seeds": {},
-    },
-    "beforeafter": {
-        "subjects": BEFORE_SUBJECTS, "roots": BEFORE_ROOTS,
-        "modifiers": BEFORE_MODIFIERS, "hint_seeds": BEFORE_HINT_SEEDS,
-        "localized_seeds": {},
     },
 }
 
@@ -1030,7 +872,7 @@ def hint_discoveries(term_rank, known, vocab, subjects, limit=10):
 
 
 def mine_candidates(meta_by_id, existing, vocab, subjects, limit=15):
-    """Pull on-topic 2-word phrases out of competitor app names (any language)."""
+    """Pull on-topic 2-word phrases out of competitor app names."""
     counts = Counter()
     for app in meta_by_id.values():
         words = _tokens(app.get("trackName", ""))
@@ -1058,7 +900,7 @@ def score_keyword(term, results, app_text, app_id, demand=0.05,
     vocab = vocab or set()
     lumen_rank = None
     for pos, app in enumerate(results[:SEARCH_LIMIT], start=1):
-        if app_id is not None and app.get("trackId") == app_id:
+        if app.get("trackId") == app_id:
             lumen_rank = pos
             break
 
@@ -1072,8 +914,8 @@ def score_keyword(term, results, app_text, app_id, demand=0.05,
     winnability = 1.0 / (1.0 + floor / 500.0)
     # Value: a term strong apps fight over is worth money (kept as a modifier).
     value = min(math.log10(field_value + 10) / 6.0, 1.0)
-    # Relevance: keyword words on-topic for this market (localized vocab) or
-    # already present in the app's listing text. Language-correct per storefront.
+    # Relevance: keyword words on-topic (vocab) or already present in the app's
+    # listing text.
     toks = _tokens(term)
     present = sum(1 for t in toks if t in vocab or t in app_text)
     relevance = 1.0 if toks and present == len(toks) else (0.5 if present else 0.2)
@@ -1113,6 +955,9 @@ def score_keyword(term, results, app_text, app_id, demand=0.05,
 
 def keyword_gap(app, country="us"):
     country = country.lower()
+    if country not in STOREFRONTS:
+        print(f"{country.upper()} isn't a tracked storefront — skipping.")
+        return
     slug, name = app["slug"], app["name"]
     cfg = GAP_CONFIG.get(slug)
     if not cfg:
@@ -1123,40 +968,31 @@ def keyword_gap(app, country="us"):
     init_db(conn)
 
     # The app's own listing text drives the relevance check (prefer fresh DB).
-    # Pre-launch apps have no listing yet, so their curated keywords stand in.
-    if app["app_id"] is None:
-        app_text = " ".join(app["keywords"]).lower()
+    row = conn.execute(
+        "SELECT app_name, description FROM metadata "
+        "WHERE country=? AND app_id=? AND app=? "
+        "ORDER BY checked_at DESC LIMIT 1",
+        (country, app["app_id"], slug)).fetchone()
+    if row:
+        app_text = f"{row[0]} {row[1]}".lower()
     else:
-        row = conn.execute(
-            "SELECT app_name, description FROM metadata "
-            "WHERE country=? AND app_id=? AND app=? "
-            "ORDER BY checked_at DESC LIMIT 1",
-            (country, app["app_id"], slug)).fetchone()
-        if row:
-            app_text = f"{row[0]} {row[1]}".lower()
-        else:
-            m = lookup_metadata([app["app_id"]], country).get(app["app_id"], {})
-            app_text = f"{m.get('trackName','')} {m.get('description','')}".lower()
+        m = lookup_metadata([app["app_id"]], country).get(app["app_id"], {})
+        app_text = f"{m.get('trackName','')} {m.get('description','')}".lower()
 
     roots, modifiers, subjects = cfg["roots"], cfg["modifiers"], cfg["subjects"]
     hint_seeds = cfg["hint_seeds"]
     comp_meta = lookup_metadata(app["competitors"], country)
-    localized = cfg["localized_seeds"].get(country, [])
-    vocab = build_topic_vocab(comp_meta, hint_seeds + localized,
+    vocab = build_topic_vocab(comp_meta, hint_seeds,
                               roots, modifiers, subjects)
 
-    # Candidate pool: curated keywords + this market's localized seeds +
-    # phrases mined from the (localized) competitor names.
+    # Candidate pool: curated keywords + phrases mined from competitor names.
     keywords = app["keywords"]
     base = list(dict.fromkeys(
-        keywords + localized
-        + mine_candidates(comp_meta, keywords + localized, vocab, subjects)))
+        keywords + mine_candidates(comp_meta, keywords, vocab, subjects)))
 
-    # Demand: harvest Apple autocomplete (English + localized seeds), then let
-    # it surface fresh candidates in whatever language the store uses.
-    print(f"[{name}] Harvesting search demand for {country.upper()}"
-          f"{' (+localized)' if localized else ''}...")
-    seeds = hint_seeds + localized + [k.split()[0] for k in base]
+    # Demand: harvest Apple autocomplete, then let it surface fresh candidates.
+    print(f"[{name}] Harvesting search demand for {country.upper()}...")
+    seeds = hint_seeds + [k.split()[0] for k in base]
     term_rank = harvest_demand(seeds, country)
     discovered = hint_discoveries(term_rank, base, vocab, subjects)
     candidates = list(dict.fromkeys(base + [t for t, _ in discovered]))
@@ -1222,8 +1058,7 @@ def demand_report(country="us"):
     """Just the autocomplete demand landscape — what people actually search."""
     country = country.lower()
     print(f"Harvesting App Store autocomplete for {country.upper()}...\n")
-    term_rank = harvest_demand(HINT_SEEDS + LOCALIZED_SEEDS.get(country, []),
-                               country, log=False)
+    term_rank = harvest_demand(HINT_SEEDS, country, log=False)
     if not term_rank:
         print("No suggestions returned (check the storefront id).")
         return
@@ -1244,10 +1079,6 @@ def run():
 
     for profile in APPS:
         slug, name = profile["slug"], profile["name"]
-        if profile["app_id"] is None:
-            summary.append(f"\n\n{'#' * 10} {name} {'#' * 10}"
-                           "\n(pre-launch — no listing to track yet; skipped)")
-            continue
         countries, keywords = profile["countries"], profile["keywords"]
         summary.append(f"\n\n{'#' * 10} {name} {'#' * 10}")
 
@@ -1341,18 +1172,16 @@ def run_gap(args):
     """Dispatch the `gap` command.
 
       gap                      every app, each across its own markets
-      gap all [c1 c2 ...]      every app, optionally limited to those markets
+      gap all                  every app
       gap <slug> [country]     one app; one market or all of its markets
       gap <country>            backward-compat: Lumen for that one market
     """
     if not args or args[0] == "all":
-        wanted = {c.lower() for c in args[1:]}            # empty = no filter
         for prof in APPS:
             if prof["slug"] not in GAP_CONFIG:
                 continue
             for c in prof["countries"]:
-                if not wanted or c in wanted:
-                    keyword_gap(prof, c)
+                keyword_gap(prof, c)
         return
     prof = _app_by_slug(args[0])
     if prof is None:                                      # `gap us` style
