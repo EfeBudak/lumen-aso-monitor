@@ -44,17 +44,8 @@ MY_APP_ID = 6769856284  # Lumen — its sobriety keyword/competitor globals foll
 
 KEYWORDS = [
     "sober tracker",
-    "days since",
     "sobriety counter",
     "sobriety tracker",
-    "relapse tracker",
-    "quit drinking",
-    "sober days counter",
-    "streak tracker",
-    "quit smoking",
-    "addiction recovery",
-    "sober counter",
-    "days since",
     "quit tracker",
 ]
 
